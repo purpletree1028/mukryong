@@ -1,0 +1,26 @@
+{
+  "name": "묵룡 한자 숲",
+  "short_name": "묵룡 한자 숲",
+  "description": "하루 10분, 한자 씨앗을 심고 낱말 열매를 따요",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#EAF4E6",
+  "theme_color": "#3B9459",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

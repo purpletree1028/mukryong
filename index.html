@@ -1,0 +1,1281 @@
+<meta charset="utf-8">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3B9459">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="묵룡 한자 숲">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>묵룡 한자 숲</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Noto+Serif+KR:wght@700;900&display=swap">
+<style>
+/* Layout: one-column "forest path" app (max 720px), big touch targets, hanzi always sit on 田字格 practice paper */
+:root{
+  --bg:#EAF4E6; --surface:#FFFFFF; --surface2:#F4FAF1; --ink:#1E2A33; --muted:#5A6B66; --line:#D3E3CF;
+  --leaf:#3B9459; --leaf-ink:#FFFFFF; --leaf-soft:#D6EED8; --sun:#FFC83D; --sun-ink:#3A2A00; --sun-soft:#FFF1C4;
+  --sky:#3F9AD6; --sky-soft:#DCEFFB; --coral:#E65F4F; --coral-soft:#FDE1DC; --gold:#C98A12; --gold-soft:#FFF0C2;
+  --warn:#B42318; --grid:#E3A99B; --shadow:rgba(30,60,40,.12); --press:rgba(0,0,0,.18);
+  --f-display:'Jua','Gowun Dodum',system-ui,sans-serif;
+  --f-body:'Gowun Dodum',system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-han:'Noto Serif KR','Batang','AppleMyungjo',serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#122019; --surface:#1B2C23; --surface2:#20352A; --ink:#E8F2EA; --muted:#A2B6AA; --line:#2E4638;
+  --leaf:#5CC07F; --leaf-ink:#0E1A13; --leaf-soft:#244634; --sun:#FFD25E; --sun-ink:#2E2200; --sun-soft:#3D3418;
+  --sky:#6FC0F0; --sky-soft:#173446; --coral:#FF8B7D; --coral-soft:#4A2420; --gold:#F0BE4E; --gold-soft:#3F3415;
+  --warn:#FF8B7D; --grid:#7A5249; --shadow:rgba(0,0,0,.35); --press:rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#122019; --surface:#1B2C23; --surface2:#20352A; --ink:#E8F2EA; --muted:#A2B6AA; --line:#2E4638;
+  --leaf:#5CC07F; --leaf-ink:#0E1A13; --leaf-soft:#244634; --sun:#FFD25E; --sun-ink:#2E2200; --sun-soft:#3D3418;
+  --sky:#6FC0F0; --sky-soft:#173446; --coral:#FF8B7D; --coral-soft:#4A2420; --gold:#F0BE4E; --gold-soft:#3F3415;
+  --warn:#FF8B7D; --grid:#7A5249; --shadow:rgba(0,0,0,.35); --press:rgba(0,0,0,.45); color-scheme:dark}
+
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));-webkit-tap-highlight-color:transparent}
+body.g-low{font-size:19px}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+h1,h2,h3{margin:0;text-wrap:balance;font-family:var(--f-display);font-weight:400}
+p{margin:0}
+.wrap{max-width:720px;margin:0 auto;padding-block:16px 56px;display:flex;flex-direction:column;gap:16px}
+.han{font-family:var(--f-han);font-weight:900}
+.disp{font-family:var(--f-display);font-weight:400}
+.muted{color:var(--muted)}
+.h1{font-size:28px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.card{background:var(--surface);border-radius:22px;padding:18px;box-shadow:0 3px 0 var(--line)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 22px;border-radius:16px;
+  font-family:var(--f-display);font-size:20px;background:var(--leaf);color:var(--leaf-ink);box-shadow:0 4px 0 var(--press);transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--press)}
+.btn.ghost{background:var(--surface);color:var(--ink);box-shadow:0 3px 0 var(--line);border:2px solid var(--line)}
+.btn.sun{background:var(--sun);color:var(--sun-ink)}
+.btn.big{min-height:64px;font-size:23px;width:100%}
+.btn.sm{min-height:40px;font-size:16px;padding:0 14px;border-radius:12px}
+.btn.danger{color:var(--coral)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.back{font-family:var(--f-display);font-size:18px;padding:8px 4px;color:var(--muted)}
+.link{color:var(--sky);text-decoration:underline;font-size:15px}
+
+.topbar{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.chips{display:flex;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface);font-family:var(--f-display);font-size:17px;box-shadow:0 2px 0 var(--line)}
+.chip svg{width:28px;height:28px}
+
+/* paper with 田字格 dashed guide */
+.paper{position:relative;border:3px solid var(--grid);border-radius:14px;
+  background:
+    repeating-linear-gradient(to bottom,var(--grid) 0 7px,transparent 7px 14px) center/2px 100% no-repeat,
+    repeating-linear-gradient(to right,var(--grid) 0 7px,transparent 7px 14px) center/100% 2px no-repeat,
+    var(--surface)}
+
+/* brand */
+.brand{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.logo{font-size:34px;line-height:1.1;color:var(--leaf)}
+.logo .han{color:var(--ink);font-size:.9em}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.pcard{background:var(--surface);border-radius:22px;box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;gap:8px;padding:12px}
+.pmain{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px}
+.pmain b{font-size:22px}
+.pmain small{color:var(--muted);font-size:14px}
+.pcard.add{align-items:center;justify-content:center;min-height:170px;font-family:var(--f-display);font-size:20px;color:var(--leaf);border:3px dashed var(--line);box-shadow:none;background:transparent}
+.pcard.add .plus{font-size:40px;line-height:1}
+.prow{display:flex;gap:6px;justify-content:center}
+.confirm{background:var(--coral-soft);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:15px}
+.hello{display:flex;align-items:center;gap:14px}
+.hello svg{width:96px;flex:none}
+
+/* form */
+.form{display:flex;flex-direction:column;gap:10px}
+.lbl{font-family:var(--f-display);font-size:18px;margin-top:6px}
+.inp{font:inherit;font-size:20px;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface2);color:var(--ink);width:100%}
+.seg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.segb{min-height:48px;border-radius:12px;background:var(--surface2);border:2px solid var(--line);font-family:var(--f-display);font-size:16px}
+.segb.on,.sw.on,.copt.on{border-color:var(--leaf);background:var(--leaf-soft)}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.sw{width:64px;height:64px;border-radius:16px;border:3px solid var(--line);background:var(--surface2);display:grid;place-items:center}
+.sw svg{width:52px;height:52px}
+.copts{display:flex;flex-direction:column;gap:8px}
+.copt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--surface2);text-align:left}
+.copt b{font-family:var(--f-display);font-weight:400;font-size:19px}
+.copt small{color:var(--muted)}
+.copt.locked{opacity:.55;cursor:not-allowed}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--sun-soft);color:var(--ink);margin-left:6px;vertical-align:2px}
+
+/* home */
+.hero{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:14px;background:linear-gradient(180deg,var(--sky-soft),var(--surface) 70%)}
+.bubble{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:10px 16px;font-family:var(--f-display);font-size:19px;text-align:center;max-width:420px}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-10px;width:16px;height:16px;background:var(--surface);border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.dragon.big{width:min(210px,58vw);height:auto}
+.dragon.mini{width:88px;height:88px}
+.dragon.tiny{width:28px;height:28px}
+.dimg{display:inline-grid;place-items:end center;aspect-ratio:1;flex:none;position:relative;isolation:isolate}
+.dimg:not(.big):not(.mini):not(.tiny){width:100%;height:100%}
+.dimg img{width:100%;height:100%;object-fit:contain;transform:scale(var(--k));transform-origin:50% 92%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.dimg.big img,.dimg.mini img{animation:bobK 3s ease-in-out infinite}
+@keyframes bobK{50%{translate:0 -4px}}
+.dimg.st4::before{content:"";position:absolute;inset:8% 8% 2%;border-radius:50%;background:radial-gradient(circle,var(--sun-soft),transparent 68%);z-index:-1}
+.dimg.st4{filter:drop-shadow(0 0 10px rgba(255,200,61,.55))}
+.chip .dimg,.hello .dimg{width:28px;height:28px}
+.hello .dimg{width:96px;height:96px}
+.sw .dimg{width:52px;height:52px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:4px;width:min(320px,100%)}
+.stage b{font-size:22px}
+.xpbar,.pbar{width:100%;height:14px;border-radius:999px;background:var(--leaf-soft);overflow:hidden}
+.xpbar i,.pbar i{display:block;height:100%;background:var(--leaf);border-radius:999px;transition:width .6s}
+.xpbar i{background:linear-gradient(90deg,var(--leaf),var(--sun))}
+.preview{display:flex;align-items:center;gap:8px;justify-content:center;color:var(--muted);font-size:15px;margin-top:-6px}
+.preview .han{font-size:22px;color:var(--ink)}
+.coursebar{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left}
+.coursebar b{font-size:20px}
+.coursebar .meta{display:flex;justify-content:space-between;width:100%;font-size:14px;color:var(--muted)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;background:var(--surface);border-radius:18px;padding:12px 16px;font-family:var(--f-display);font-size:18px;box-shadow:0 3px 0 var(--line);text-align:left}
+.toggle small{display:block;font-family:var(--f-body);font-size:14px;color:var(--muted)}
+.knob{flex:none;width:54px;height:30px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
+.knob::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);transition:left .2s;box-shadow:0 1px 3px var(--shadow)}
+.toggle.on .knob{background:var(--leaf)}
+.toggle.on .knob::after{left:27px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tile-n{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--surface);border-radius:20px;padding:16px;box-shadow:0 3px 0 var(--line);text-align:left;min-height:110px}
+.tile-n .ic{font-size:32px;line-height:1}
+.tile-n b{font-family:var(--f-display);font-weight:400;font-size:20px}
+.tile-n small{color:var(--muted);font-size:14px;line-height:1.3}
+
+/* overlay */
+.ov{position:fixed;inset:0;background:rgba(10,20,15,.45);display:flex;align-items:flex-end;justify-content:center;z-index:30;padding:0 max(12px,env(safe-area-inset-right,0px)) 0 max(12px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--surface);width:min(720px,100%);max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:20px 18px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-h{display:flex;justify-content:space-between;align-items:center}
+.x{font-size:26px;width:44px;height:44px;border-radius:50%;background:var(--surface2)}
+
+/* adventure */
+.steps{display:flex;gap:6px;align-items:center;flex:1;justify-content:flex-end}
+.stp{font-family:var(--f-display);font-size:14px;padding:4px 10px;border-radius:999px;background:var(--surface);color:var(--muted)}
+.stp.on{background:var(--leaf);color:var(--leaf-ink)}
+.stp.ok{background:var(--leaf-soft);color:var(--ink)}
+.learn{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.step-t{font-family:var(--f-display);font-size:18px;color:var(--leaf);align-self:flex-start}
+.reveal{width:min(240px,62vw);aspect-ratio:1;max-width:100%;display:grid;place-items:center}
+.reveal>*{grid-area:1/1}
+.reveal .emo{font-size:min(110px,28vw);animation:emoOut 1.7s ease forwards}
+.reveal .hz{font-size:min(170px,44vw);line-height:1;opacity:0;animation:hzIn .7s 1.2s ease forwards}
+@keyframes emoOut{0%,55%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.6)}}
+@keyframes hzIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.hunum{display:flex;align-items:center;gap:12px;font-size:30px}
+.hunum b{color:var(--leaf);font-weight:400}
+.say{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:44px;height:44px;padding:0 10px;border-radius:999px;background:var(--sky-soft);font-size:20px}
+.say.big{min-width:58px;height:58px;font-size:26px}
+.story{max-width:52ch;font-size:1.02em}
+.note{background:var(--sun-soft);border-radius:12px;padding:8px 12px;font-size:15px;max-width:52ch}
+.together-hint{font-size:14px;color:var(--muted);background:var(--surface2);border-radius:10px;padding:6px 10px}
+.trace{width:min(300px,78vw);aspect-ratio:1;max-width:100%;touch-action:none}
+.trace .ghost{position:absolute;inset:0;display:grid;place-items:center;font-size:min(230px,60vw);line-height:1;color:var(--ink);opacity:.14;pointer-events:none;user-select:none}
+.sorder{width:min(220px,58vw);aspect-ratio:1;max-width:100%}
+.stroke{position:absolute;inset:6%;width:88%;height:88%}
+.stroke .gh path{fill:var(--ink);fill-opacity:.13}
+.stroke .sk{fill:none;stroke:var(--leaf);stroke-width:150;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 1.3;stroke-dashoffset:1.15;opacity:0;animation:skDraw .7s linear both}
+@keyframes skDraw{0%{stroke-dashoffset:1.15;opacity:0}1%{opacity:1}100%{stroke-dashoffset:0;opacity:1}}
+.stroke .sn circle{fill:var(--sun);stroke:var(--surface);stroke-width:6}
+.stroke .sn text{font-family:var(--f-display),sans-serif;font-weight:700;fill:var(--sun-ink);text-anchor:middle}
+.stroke.anim .sn{opacity:0;transform-box:fill-box;transform-origin:center;animation:snIn .35s ease-out both}
+@keyframes snIn{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+.trace .ghost.svg{opacity:1}
+/* 따라 쓰기 칸: 기다리는 번호는 반투명, 다 쓴 번호는 숨기고, 지금 쓸 번호만 또렷하게 */
+.trace .sn{transform-box:fill-box;transform-origin:center;transition:opacity .2s;opacity:.35}
+.trace .sn.done{opacity:0}
+.trace .ghost.top{z-index:1}
+.trace .ghost.top .sn:not(.next),.trace .ghost:not(.top) .sn.next{visibility:hidden}
+.trace .sn.next{opacity:1;transform:scale(1.5)}
+.trace .sn.next circle{fill:var(--sun);stroke:var(--leaf);stroke-width:8}
+.trace .sn.next{animation:snPulse 1.4s ease-in-out infinite}
+.trace .sn.nudge{animation:snNudge .5s ease-out 2,snPulse 1.4s 1s ease-in-out infinite}
+@keyframes snPulse{0%,100%{transform:scale(1.5)}50%{transform:scale(1.75)}}
+@keyframes snNudge{0%,100%{transform:scale(1.5)}50%{transform:scale(2.2)}}
+.tmsg{min-height:1.6em;font-family:var(--f-display);font-size:18px;line-height:1.4;color:var(--muted);max-width:30ch}
+.tmsg.ok{color:var(--leaf)}
+.tmsg.bad{color:var(--warn);background:var(--coral-soft);border-radius:12px;padding:6px 12px}
+.trace canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:11px}
+.words{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;width:100%}
+.wcard{background:var(--surface2);border-radius:16px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:4px;border:2px solid var(--line)}
+.wtop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.wcard.quiz{width:100%;cursor:pointer;box-shadow:0 3px 0 var(--line);transition:transform .08s}
+.wcard.quiz:active{transform:translateY(2px)}
+.wcard.quiz:not(.s2) .wc small{visibility:hidden}
+.wcard.quiz.s1{border-color:var(--sky)}
+.wcard.quiz.s2{border-color:var(--leaf)}
+.wcard.quiz.s2 .wread,.wcard.quiz.s2 .wmean{animation:up .25s ease-out}
+.whint{font-family:var(--f-display);font-size:16px;color:var(--muted);padding:4px 0}
+.wcard.quiz.s1 .whint{color:var(--sky)}
+.rchip.s1{border-color:var(--sky)}
+.rhint{font-size:14px}
+.whan{display:flex;gap:4px;flex-wrap:wrap}
+.wc{display:flex;flex-direction:column;align-items:center;min-width:48px;padding:4px 4px 2px;border-radius:10px;background:var(--surface)}
+.wc b{font-family:var(--f-han);font-weight:900;font-size:30px;line-height:1.1}
+.wc small{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.wc.focus{background:var(--leaf-soft)}
+.wread{font-size:22px}
+.wmean{font-size:15px;color:var(--muted)}
+.related{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;font-size:15px}
+.rchip{display:inline-flex;gap:6px;align-items:baseline;padding:4px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--line)}
+.rchip .han{font-size:18px}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.qprompt{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.qbig{font-size:min(110px,26vw);line-height:1.1}
+.qbig.l3{font-size:min(84px,20vw)}
+.qbig.l4{font-size:min(66px,15vw)}
+.qmid{font-family:var(--f-display);font-size:26px;line-height:1.3}
+.qsub{color:var(--muted);font-size:16px}
+.qsent{font-size:21px;line-height:1.6;max-width:36ch}
+.blank{display:inline-block;min-width:3.2em;border-bottom:3px solid var(--leaf);color:var(--leaf);font-family:var(--f-display)}
+.qemoji{font-size:min(110px,26vw);line-height:1.1}
+.qear{font-size:64px}
+.hint{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-size:15px;color:var(--muted)}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.opt{min-height:64px;padding:10px;border-radius:16px;background:var(--surface2);border:2px solid var(--line);font-size:18px;line-height:1.3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 3px 0 var(--line)}
+.opt .han{font-size:34px;line-height:1.15}
+.opt small{color:var(--muted);font-size:14px}
+.opt .ko{font-family:var(--f-display);font-size:22px}
+.opt.right{background:var(--leaf-soft);border-color:var(--leaf);animation:pop .35s}
+.opt.wrong{background:var(--coral-soft);border-color:var(--coral);animation:shake .4s}
+.opt.dim{opacity:.5}
+.opt:disabled{cursor:default}
+.fb{display:flex;flex-direction:column;gap:2px;align-items:center;text-align:center;padding:10px;border-radius:14px}
+.fb b{font-size:22px}
+.fb.good{background:var(--leaf-soft)}
+.fb.soft{background:var(--sun-soft)}
+.fb small{color:var(--muted);font-size:14.5px}
+.turn{align-self:center;font-family:var(--f-display);font-size:16px;padding:4px 14px;border-radius:999px;background:var(--sun-soft)}
+@keyframes pop{50%{transform:scale(1.06)}}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.shake{animation:shake .4s}
+
+/* game picker */
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.gcard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:14px;border-radius:18px;background:var(--surface);box-shadow:0 3px 0 var(--line);text-align:left;min-height:120px}
+.gcard .ic{font-size:34px;line-height:1.1}
+.gcard b{font-family:var(--f-display);font-weight:400;font-size:19px}
+.gcard small{color:var(--muted);font-size:14px;line-height:1.3}
+.gcard .cnt{margin-top:auto;font-size:12px;color:var(--leaf)}
+
+/* memory */
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;perspective:900px}
+@media (min-width:560px){.mgrid{grid-template-columns:repeat(4,1fr)}}
+.mcard{position:relative;aspect-ratio:3/3.6;max-width:100%;transform-style:preserve-3d;transition:transform .4s}
+.mcard>span{position:absolute;inset:0;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-direction:column;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:6px;text-align:center}
+.mcard .back{background:var(--leaf);font-size:36px;box-shadow:0 4px 0 var(--press);background-image:radial-gradient(circle at 30% 30%,rgba(255,255,255,.18) 0 18%,transparent 19%),radial-gradient(circle at 70% 75%,rgba(255,255,255,.14) 0 14%,transparent 15%)}
+.mcard .front{background:var(--surface);border:3px solid var(--line);transform:rotateY(180deg)}
+.mcard .front.h{font-family:var(--f-han);font-weight:900;font-size:clamp(28px,8vw,46px);line-height:1.1}
+.mcard .front.k{font-family:var(--f-display);font-size:clamp(17px,4.6vw,22px);line-height:1.25}
+.mcard.up{transform:rotateY(180deg)}
+.mcard.done .front{border-color:var(--leaf);background:var(--leaf-soft)}
+
+/* bingo */
+.callcard{display:flex;align-items:center;gap:14px}
+.calltext{font-family:var(--f-display);font-size:24px;color:var(--leaf)}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bcell{position:relative;aspect-ratio:1;max-width:100%;border-radius:16px;background:var(--surface);border:3px solid var(--line);display:grid;place-items:center;box-shadow:0 3px 0 var(--line)}
+.bcell .han{font-size:clamp(26px,9vw,52px);line-height:1}
+.bcell .han.l3{font-size:clamp(20px,6.4vw,38px)}
+.bcell .han.l4{font-size:clamp(16px,5vw,30px)}
+.bcell.st{background:var(--leaf-soft);border-color:var(--leaf)}
+.stamp{position:absolute;right:6px;top:4px;font-style:normal;font-size:24px;animation:pop .3s}
+
+/* assemble */
+.asm{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.ameaning{font-family:var(--f-display);font-size:24px;line-height:1.3}
+.aread{display:flex;gap:8px;align-items:center;font-size:20px;color:var(--muted)}
+.slots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.slot{width:clamp(64px,18vw,92px);aspect-ratio:1;display:grid;place-items:center}
+.slot b{font-size:clamp(34px,10vw,52px);line-height:1.05;animation:pop .3s}
+.slot{grid-auto-rows:min-content;align-content:center}
+.slot small{font-size:11px;color:var(--muted);white-space:nowrap}
+.tray{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ttile{width:clamp(64px,18vw,84px);min-height:clamp(64px,18vw,84px);border-radius:16px;background:var(--sun-soft);border:2px solid var(--line);box-shadow:0 3px 0 var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ttile b{font-size:clamp(32px,9vw,44px);line-height:1.1}
+.ttile small{font-size:11px;color:var(--muted)}
+.ttile.used{opacity:.25}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.btile{position:relative;aspect-ratio:1;max-width:100%;border-radius:14px;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--f-display);font-size:16px;color:var(--muted)}
+.btile.star{background:var(--sun-soft)}
+.btile.end{background:var(--leaf-soft);font-size:26px}
+.btile.start{background:var(--sky-soft);font-size:14px}
+.btile .tok{position:absolute;inset:6%;display:grid;place-items:center;animation:pop .35s}
+.btile .tok svg{width:100%;height:100%}
+.bctl{display:flex;flex-direction:column;gap:10px;align-items:center}
+.die{font-size:76px;line-height:1;color:var(--ink)}
+.die.roll{animation:spin .6s linear}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bmsg{text-align:center;font-family:var(--f-display);font-size:18px;color:var(--leaf);min-height:1.5em}
+
+/* result & finish */
+.result{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.result .stars{font-size:46px;letter-spacing:4px}
+.result .xp{font-family:var(--f-display);font-size:24px;color:var(--leaf)}
+.fin-h{text-align:center;font-size:30px;color:var(--leaf)}
+.grow{background:var(--sun-soft);border-radius:16px;padding:10px 14px;font-family:var(--f-display);font-size:20px;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:var(--surface2);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
+.stat small{color:var(--muted);font-size:14px}
+.newh{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.newh span{width:64px;height:64px;font-size:40px;display:grid;place-items:center}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:20}
+.confetti i{position:absolute;top:-20px;width:10px;height:14px;border-radius:3px;animation:fall 2.4s ease-in forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.9}}
+
+/* forest */
+.lesson-h{font-family:var(--f-display);font-size:16px;color:var(--muted);margin-top:4px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.ftile{aspect-ratio:1;max-width:100%;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--leaf-soft);border:2px solid var(--leaf);gap:0}
+.ftile .han{font-size:34px;line-height:1.1}
+.ftile small{font-size:11px;color:var(--muted)}
+.ftile.gold{background:var(--gold-soft);border-color:var(--gold)}
+.ftile.seed{background:var(--surface);border:2px dashed var(--line);font-size:26px;color:var(--muted)}
+.dhan{width:min(180px,48vw);aspect-ratio:1;max-width:100%;display:grid;place-items:center;font-size:min(130px,34vw);line-height:1;align-self:center}
+.boxline{display:flex;gap:4px;align-items:center;font-size:14px;color:var(--muted);justify-content:center}
+.boxline i{width:22px;height:12px;border-radius:4px;background:var(--line)}
+.boxline i.on{background:var(--leaf)}
+.boxline i.gold{background:var(--gold)}
+
+/* badges */
+.bdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.bd{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;box-shadow:0 3px 0 var(--line)}
+.bd .ic{font-size:40px;line-height:1.2}
+.bd b{font-family:var(--f-display);font-weight:400;font-size:18px}
+.bd small{font-size:13px;color:var(--muted);line-height:1.3}
+.bd.off .ic{filter:grayscale(1);opacity:.35}
+.bd.off b{color:var(--muted)}
+
+/* report */
+.rep{display:flex;flex-direction:column;gap:12px}
+.rep h2{font-size:21px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;font-variant-numeric:tabular-nums}
+.cal .wd{font-size:12px;color:var(--muted);text-align:center}
+.cal .d{aspect-ratio:1;max-width:100%;border-radius:8px;display:grid;place-items:center;font-size:12px;background:var(--surface2);color:var(--muted)}
+.cal .d.l1{background:var(--leaf-soft);color:var(--ink)}
+.cal .d.l2{background:color-mix(in srgb,var(--leaf) 55%,var(--surface));color:var(--ink)}
+.cal .d.l3{background:var(--leaf);color:var(--leaf-ink)}
+.cal .d.fut{opacity:.35}
+.cal .d.today{outline:2px solid var(--sun)}
+.legend{display:flex;gap:10px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:3px}
+.hbars{display:flex;flex-direction:column;gap:6px}
+.hb{display:grid;grid-template-columns:92px 1fr 36px;gap:8px;align-items:center;font-size:14px}
+.hb .tr{height:14px;border-radius:999px;background:var(--surface2);overflow:hidden}
+.hb .tr i{display:block;height:100%;background:var(--sky);border-radius:999px}
+.hb .tr i.gold{background:var(--gold)}
+.hb span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.weak{display:flex;flex-direction:column;gap:6px}
+.weak li{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:12px;align-items:center}
+.weak ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.weak .han{font-size:22px}
+.praise{background:var(--sun-soft);border-radius:16px;padding:12px 14px}
+.cmp{display:flex;align-items:center;justify-content:space-around;gap:10px;background:var(--surface2);border-radius:16px;padding:12px;text-align:center}
+.cmp small{color:var(--muted);font-size:13px}
+.cmp b{display:block;font-family:var(--f-display);font-weight:400;font-size:30px;font-variant-numeric:tabular-nums}
+.arrow{font-family:var(--f-display);font-size:20px;color:var(--muted)}
+.arrow.up{color:var(--leaf)}
+.arrow.down{color:var(--coral)}
+.wchart{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;align-items:end}
+.wcol{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+.wbar{height:90px;width:100%;max-width:28px;background:var(--surface2);border-radius:8px;display:flex;align-items:flex-end;overflow:hidden}
+.wbar i{display:block;width:100%;background:var(--sky);border-radius:8px}
+.wv{font-size:12px;font-variant-numeric:tabular-nums}
+.wcol small{font-size:10.5px;white-space:nowrap}
+.infcard{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:10px;min-height:0;border:2px solid var(--sky);background:var(--sky-soft)}
+.infcard small{flex-basis:100%}
+.gatebox{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.gq{font-family:var(--f-display);font-size:34px;font-variant-numeric:tabular-nums}
+
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:50;width:min(420px,calc(100% - 32px));pointer-events:none}
+.toast{background:var(--ink);color:var(--bg);border-radius:14px;padding:10px 14px;font-family:var(--f-display);font-size:17px;text-align:center;animation:up .25s ease-out;box-shadow:0 6px 18px var(--shadow)}
+.foot{font-size:13px;color:var(--muted);text-align:center}
+
+.wob{transform-origin:100px 178px;animation:wob 2.6s ease-in-out infinite}
+@keyframes wob{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(-6deg)}84%{transform:rotate(6deg)}92%{transform:rotate(-3deg)}}
+.bob{animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+@media (max-width:420px){.seg{grid-template-columns:repeat(3,1fr)}.opts{gap:8px}.opt .han{font-size:30px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ================= 데이터: 8급 50자 ================= */
+// w: [낱말, 읽기, 뜻, 예문(___ 자리에 낱말), 그림]
+const H_RAW=[
+{c:'一',hun:'한',eum:'일',s:1,e:'1️⃣',o:'막대기 하나를 옆으로 눕혀 놓은 모양이에요. 그래서 "하나"를 뜻해요.',w:[
+ ['一年','일년','한 해 동안','우리는 ___ 동안 같은 반이었어요.','📅'],['一生','일생','태어나서 죽을 때까지의 동안','할머니는 ___ 동안 이 마을에서 사셨어요.'],['第一','제일','여럿 가운데 가장','나는 딸기를 ___ 좋아해요.','🥇'],['一月','일월','한 해의 첫째 달','___에는 눈이 많이 내려요.','⛄']]},
+{c:'二',hun:'두',eum:'이',s:2,e:'2️⃣',o:'막대기 두 개를 위아래로 나란히 놓은 모양이에요.',w:[
+ ['二月','이월','한 해의 둘째 달','___은 다른 달보다 날수가 적어요.'],['二十','이십','스물, 10이 두 개인 수','우리 반 친구는 모두 ___ 명이에요.'],['十二月','십이월','한 해의 마지막 달','크리스마스는 ___에 있어요.','🎄']]},
+{c:'三',hun:'석',eum:'삼',s:3,e:'3️⃣',o:'막대기 세 개를 쌓아 놓은 모양이에요. 가운데 획이 가장 짧아요.',w:[
+ ['三月','삼월','한 해의 셋째 달','___에 새 학년이 시작돼요.','🌸'],['三寸','삼촌','아버지의 남자 형제','___이 놀이공원에 데려가 주셨어요.'],['三角形','삼각형','세 개의 각과 변이 있는 도형','샌드위치를 ___ 모양으로 잘랐어요.','🔺']]},
+{c:'四',hun:'넉',eum:'사',s:5,e:'4️⃣',o:'아주 옛날에는 막대기 네 개로 썼는데, 헷갈려서 지금 모양으로 바뀌었어요.',w:[
+ ['四月','사월','한 해의 넷째 달','___에는 벚꽃이 활짝 피어요.'],['四方','사방','동서남북 네 방향, 모든 방향','숲속 ___에서 새소리가 들려요.'],['四寸','사촌','아버지나 어머니 형제의 자녀','명절에 ___ 동생을 만났어요.']]},
+{c:'五',hun:'다섯',eum:'오',s:4,e:'5️⃣',o:'옛 글자는 하늘과 땅 사이에 X를 그린 모양이었어요. "다섯"을 뜻해요.',w:[
+ ['五月','오월','한 해의 다섯째 달','어린이날은 ___ 5일이에요.','🎈'],['五十','오십','쉰, 10이 다섯 개인 수','동전 ___ 원으로 사탕을 샀어요.'],['五色','오색','다섯 가지 빛깔, 여러 가지 빛깔','하늘에 ___ 무지개가 떴어요.','🌈']]},
+{c:'六',hun:'여섯',eum:'륙',s:4,e:'6️⃣',o:'지붕이 있는 작은 집 모양을 빌려서 "여섯"을 나타냈어요.',n:'낱말 맨 앞에서는 "육"으로 읽어요. 六月은 특별히 "유월"이라고 읽어요.',w:[
+ ['六月','유월','한 해의 여섯째 달 ("육월"이 아니라 "유월"로 읽어요)','___에는 날씨가 더워지기 시작해요.'],['六十','육십','예순, 10이 여섯 개인 수','한 시간은 ___ 분이에요.','⏰'],['五六','오륙','다섯이나 여섯쯤','운동장에 친구 ___ 명이 모여 있었어요.']]},
+{c:'七',hun:'일곱',eum:'칠',s:2,e:'7️⃣',o:'막대기를 가로로 자른 모양에서 나왔어요. 마지막 획이 꼬리처럼 휘어져요.',w:[
+ ['七月','칠월','한 해의 일곱째 달','___에 여름 방학이 시작돼요.','🏖️'],['七十','칠십','일흔, 10이 일곱 개인 수','이 책은 모두 ___ 쪽이에요.'],['七夕','칠석','음력 7월 7일, 견우와 직녀가 만나는 날','___ 날 견우와 직녀가 오작교에서 만나요.']]},
+{c:'八',hun:'여덟',eum:'팔',s:2,e:'8️⃣',o:'무언가를 양쪽으로 나누는 모양이에요. 나중에 "여덟"을 뜻하게 되었어요.',w:[
+ ['八月','팔월','한 해의 여덟째 달','___ 15일은 광복절이에요.'],['八十','팔십','여든, 10이 여덟 개인 수','증조할머니는 올해 ___ 세가 되셨어요.'],['八方','팔방','여러 방향, 모든 곳','강아지가 마당을 ___으로 뛰어다녀요.']]},
+{c:'九',hun:'아홉',eum:'구',s:2,e:'9️⃣',o:'팔을 구부린 모양이에요. 한 자리 수 가운데 가장 큰 수 "아홉"이에요.',w:[
+ ['九月','구월','한 해의 아홉째 달','___에 2학기가 시작돼요.','🍂'],['九九段','구구단','1부터 9까지 두 수를 곱한 값을 외우는 법','2학년이 되면 ___을 외워요.'],['十中八九','십중팔구','열 가운데 여덟이나 아홉, 거의 틀림없이','하늘이 어두운 걸 보니 ___ 비가 오겠어요.']]},
+{c:'十',hun:'열',eum:'십',s:2,e:'🔟',o:'가로와 세로가 만나는 모양으로, 하나부터 열까지 다 모였다는 뜻이에요.',n:'十月은 "십월"이 아니라 "시월"이라고 읽어요.',w:[
+ ['十月','시월','한 해의 열째 달 ("십월"이 아니라 "시월"로 읽어요)','___ 9일은 한글날이에요.'],['十字','십자','열 십(十) 자처럼 생긴 모양','두 길이 ___ 모양으로 만나요.','➕'],['十年','십년','열 해','___이면 강산도 변한다는 말이 있어요.']]},
+{c:'萬',hun:'일만',eum:'만',s:13,e:'🦂',o:'원래 꼬리를 치켜든 전갈 모양이에요! 전갈은 알을 아주 많이 낳아서 큰 수 "만"을 뜻하게 되었다고 해요.',w:[
+ ['萬一','만일','혹시 그런 일이 생길 경우','___ 비가 오면 소풍은 다음 주로 미뤄요.','☔'],['萬人','만인','모든 사람','그 노래는 ___의 사랑을 받았어요.'],['萬國旗','만국기','여러 나라의 국기를 줄에 단 것','운동회 날 운동장에 ___가 걸렸어요.'],['萬歲','만세','기쁠 때 두 팔을 들고 외치는 말','우리 팀이 이기자 모두 ___를 외쳤어요.','🙌']]},
+{c:'寸',hun:'마디',eum:'촌',s:3,e:'📏',o:'손목에서 손가락 한 마디만큼 떨어진 곳에 점을 찍은 모양이에요. 그래서 "마디"를 뜻해요.',w:[
+ ['寸數','촌수','친척 사이가 얼마나 가까운지 나타내는 수','할머니가 친척들의 ___를 알려 주셨어요.'],['外三寸','외삼촌','어머니의 남자 형제','___이 생일 선물을 보내 주셨어요.','🎁'],['寸劇','촌극','짧은 연극','학예회에서 우리 반은 ___을 했어요.','🎭']]},
+{c:'日',hun:'날',eum:'일',s:4,e:'☀️',o:'동그란 해 안에 점을 찍은 모양이에요. 붓으로 쓰기 쉽게 네모가 되었어요.',w:[
+ ['生日','생일','태어난 날','오늘은 내 ___이에요!','🎂'],['日記','일기','날마다 겪은 일과 생각을 적은 글','잠자기 전에 ___를 썼어요.','📔'],['每日','매일','하루하루 날마다','___ 조금씩 한자를 공부해요.'],['日曜日','일요일','한 주의 첫날, 학교에 가지 않는 날','___에 가족과 공원에 갔어요.']]},
+{c:'月',hun:'달',eum:'월',s:4,e:'🌙',o:'밤하늘에 뜬 초승달 모양이에요.',w:[
+ ['月曜日','월요일','한 주를 시작하는 날','___ 아침에 운동장 조회가 있어요.'],['正月','정월','한 해의 첫째 달','___ 대보름에 부럼을 깨물어요.','🌕'],['每月','매월','달마다','우리 가족은 ___ 도서관에 가요.'],['月出','월출','달이 떠오름','바닷가에서 아름다운 ___을 보았어요.']]},
+{c:'火',hun:'불',eum:'화',s:4,e:'🔥',o:'활활 타오르는 불꽃 모양이에요. 양옆의 점은 튀는 불똥이에요.',w:[
+ ['火山','화산','땅속의 뜨거운 마그마가 터져 나와 생긴 산','제주도 한라산은 옛날에 ___이었어요.','🌋'],['火曜日','화요일','월요일 다음 날','___에는 미술 수업이 있어요.'],['火災','화재','불이 나는 사고','___가 나면 119에 전화해요.','🚒'],['消火器','소화기','불을 끄는 기구','복도에 빨간 ___가 놓여 있어요.','🧯']]},
+{c:'水',hun:'물',eum:'수',s:4,e:'💧',o:'가운데 큰 물줄기와 양옆으로 튀는 물방울 모양이에요.',w:[
+ ['水曜日','수요일','한 주의 한가운데 날','___에는 급식에 맛있는 반찬이 나와요.'],['生水','생수','끓이지 않은 맑은 물','목이 말라서 ___를 마셨어요.','🚰'],['水門','수문','물이 흘러가는 것을 막거나 열어 주는 문','비가 많이 와서 댐의 ___을 열었어요.'],['水泳','수영','물속을 헤엄치는 일','여름에 바다에서 ___을 했어요.','🏊']]},
+{c:'木',hun:'나무',eum:'목',s:4,e:'🌳',o:'위로는 가지를, 아래로는 뿌리를 뻗은 나무 모양이에요.',w:[
+ ['木曜日','목요일','수요일 다음 날','___에는 체육 수업이 있어요.'],['木手','목수','나무로 집이나 가구를 만드는 사람','___ 아저씨가 나무 의자를 만들어 주셨어요.','🪚'],['木馬','목마','나무로 말 모양을 만든 것','놀이공원에서 회전___를 탔어요.','🎠'],['草木','초목','풀과 나무','봄이 되자 ___이 파릇파릇 돋아났어요.']]},
+{c:'金',hun:'쇠',eum:'금',s:8,e:'🪙',o:'땅속에 묻힌 쇠붙이 알갱이(점 두 개)를 그린 모양이에요.',n:'성씨로 쓸 때는 "성 김"이라고 읽어요.',w:[
+ ['金曜日','금요일','주말 바로 앞의 날','___ 저녁에 가족과 영화를 봤어요.'],['黃金','황금','누런 빛이 나는 금','동화 속 거위가 ___ 알을 낳았어요.','🥚'],['賞金','상금','상으로 주는 돈','그림 대회에서 ___을 받았어요.'],['金氏','김씨','김이라는 성을 가진 사람','우리 반에서 가장 많은 성은 ___예요.']]},
+{c:'土',hun:'흙',eum:'토',s:3,e:'🟫',o:'땅(一) 위에 흙더미가 볼록 솟은 모양이에요.',w:[
+ ['土曜日','토요일','일요일 바로 앞의 날','___에 할머니 댁에 갔어요.'],['國土','국토','나라의 땅','우리 ___의 많은 부분이 산이에요.','🗺️'],['黃土','황토','누런 빛의 흙','할머니 댁은 ___으로 지은 집이에요.'],['土地','토지','사람이 살거나 농사짓는 땅','넓은 ___에 벼를 심었어요.','🌾']]},
+{c:'山',hun:'메',eum:'산',s:3,e:'⛰️',o:'봉우리 세 개가 우뚝 솟은 산 모양이에요.',w:[
+ ['登山','등산','산에 오름','주말에 아빠와 ___을 했어요.','🥾'],['山林','산림','산과 숲','___을 아끼고 보호해요.','🌲'],['江山','강산','강과 산, 자연의 경치','십 년이면 ___도 변한다고 해요.'],['南山','남산','서울 한가운데에 있는 산','___ 타워에서 서울을 내려다봤어요.']]},
+{c:'人',hun:'사람',eum:'인',s:2,e:'🧍',o:'사람이 옆으로 서서 걸어가는 모양이에요.',w:[
+ ['人形','인형','사람이나 동물 모양으로 만든 장난감','동생은 곰 ___을 안고 자요.','🧸'],['主人','주인','물건이나 집을 가진 사람','잃어버린 지갑을 ___에게 돌려주었어요.'],['外國人','외국인','다른 나라 사람','___ 관광객이 길을 물어보았어요.'],['人口','인구','한 지역에 사는 사람의 수','서울은 ___가 아주 많은 도시예요.']]},
+{c:'大',hun:'큰',eum:'대',s:3,e:'🙆',o:'사람이 두 팔과 두 다리를 활짝 벌리고 선 모양이에요. "크다"는 뜻이에요.',w:[
+ ['大門','대문','집 앞의 큰 문','___ 앞에서 친구를 기다렸어요.'],['大學','대학','고등학교를 마치고 다니는 학교','언니는 ___에서 과학을 공부해요.','🎓'],['大王','대왕','훌륭한 임금을 높여 부르는 말','세종___은 한글을 만드셨어요.'],['大小','대소','크고 작음','상자를 ___ 순서대로 정리했어요.']]},
+{c:'小',hun:'작을',eum:'소',s:3,e:'🐜',o:'작은 점 세 개로 아주 작은 것을 나타냈어요.',w:[
+ ['小人','소인','나이 어린 사람 (표를 살 때 어린이를 뜻해요)','놀이공원 입장권은 ___ 요금이 더 싸요.','🎟️'],['小說','소설','지어낸 이야기를 쓴 글','언니는 모험 ___을 즐겨 읽어요.','📖'],['最小','최소','가장 적음, 가장 작음','이 놀이는 ___ 세 명이 있어야 할 수 있어요.'],['小兒科','소아과','어린이의 병을 고치는 병원','감기에 걸려서 ___에 갔어요.','🩺']]},
+{c:'中',hun:'가운데',eum:'중',s:4,e:'🎯',o:'네모난 과녁의 한가운데를 화살이 꿰뚫은 모양이에요.',w:[
+ ['中國','중국','우리나라 서쪽의 큰 나라','___에는 만리장성이 있어요.'],['中學生','중학생','중학교에 다니는 학생','형은 올해 ___이 되었어요.'],['中心','중심','한가운데','다트를 던져 과녁의 ___을 맞혔어요.'],['空中','공중','하늘과 땅 사이의 빈 곳','풍선이 ___으로 날아갔어요.','🎈']]},
+{c:'東',hun:'동녘',eum:'동',s:8,e:'🌅',o:'나무(木) 사이로 해(日)가 떠오르는 쪽, 동쪽을 나타낸다고 풀이해요.',w:[
+ ['東海','동해','우리나라 동쪽 바다','___에서 해돋이를 봤어요.'],['東大門','동대문','서울 동쪽에 있는 큰 문','___ 시장에 옷을 사러 갔어요.'],['東西南北','동서남북','동쪽, 서쪽, 남쪽, 북쪽 네 방향','나침반으로 ___을 알 수 있어요.','🧭'],['東洋','동양','아시아 동쪽의 나라들','젓가락은 ___에서 많이 쓰는 식사 도구예요.','🥢']]},
+{c:'西',hun:'서녘',eum:'서',s:6,e:'🌇',o:'새가 둥지에 앉은 모양이에요. 해 질 녘 새가 둥지로 돌아갈 때 해는 서쪽에 있어요.',w:[
+ ['西海','서해','우리나라 서쪽 바다','___에서 갯벌 체험을 했어요.'],['西洋','서양','유럽과 아메리카의 나라들','포크와 나이프는 ___에서 온 식사 도구예요.','🍴'],['西山','서산','서쪽에 있는 산','해가 ___ 너머로 넘어갔어요.'],['東西','동서','동쪽과 서쪽','이 길은 마을을 ___로 가로질러요.']]},
+{c:'南',hun:'남녘',eum:'남',s:9,e:'🌴',o:'옛날에 매달아 두고 치던 악기 모양이라고 해요. 이 글자를 빌려서 "남쪽"을 나타냈어요.',w:[
+ ['南韓','남한','휴전선 남쪽의 우리나라','___과 북한은 같은 말을 써요.'],['南大門','남대문','서울 남쪽의 큰 문, 숭례문','___은 우리나라의 국보예요.'],['南極','남극','지구의 가장 남쪽 끝','___에는 펭귄이 살아요.','🐧'],['南北','남북','남쪽과 북쪽','우리나라는 ___으로 길게 뻗어 있어요.']]},
+{c:'北',hun:'북녘',eum:'북',s:5,e:'❄️',o:'두 사람이 서로 등을 맞대고 있는 모양이에요. 해를 등지는 쪽이 북쪽이에요.',w:[
+ ['北韓','북한','휴전선 북쪽 지역','___에도 우리와 같은 말을 쓰는 사람들이 살아요.'],['北極','북극','지구의 가장 북쪽 끝','___에는 북극곰이 살아요.','🐻‍❄️'],['北門','북문','북쪽에 있는 문','학교 ___으로 나가면 공원이 있어요.'],['北斗七星','북두칠성','국자 모양으로 늘어선 일곱 개의 별','밤하늘에서 ___을 찾았어요.','✨']]},
+{c:'門',hun:'문',eum:'문',s:8,e:'🚪',o:'양쪽으로 여닫는 두 짝 문 모양이에요.',w:[
+ ['正門','정문','건물 앞쪽에 있는 큰 문','학교 ___ 앞에서 만나자.'],['窓門','창문','빛과 바람이 들어오도록 벽에 낸 문','___을 열어 바람이 통하게 해요.','🪟'],['入門','입문','어떤 공부를 처음 시작함','오늘부터 한자 공부에 ___했어요.']]},
+{c:'外',hun:'바깥',eum:'외',s:5,e:'🏕️',o:'저녁(夕)에 점(卜)을 치는 건 평소와 다른 바깥일이라는 뜻에서 나왔어요.',w:[
+ ['外出','외출','잠깐 밖에 나감','엄마가 ___ 준비를 하세요.'],['外家','외가','어머니의 친정 집안','방학에 ___에 놀러 갔어요.','🏡'],['室外','실외','방이나 건물의 밖','날씨가 좋아서 ___ 수업을 했어요.'],['外食','외식','집 밖에서 음식을 사 먹음','생일날 가족과 ___을 했어요.','🍽️']]},
+{c:'父',hun:'아비',eum:'부',s:4,e:'👨',o:'손에 돌도끼를 들고 일하는 모습이에요. 가족을 위해 일하는 아버지를 뜻해요.',w:[
+ ['父母','부모','아버지와 어머니','___님께 감사 편지를 썼어요.','💌'],['父子','부자','아버지와 아들','두 사람은 얼굴이 꼭 닮은 ___예요.'],['祖父','조부','할아버지','___께서는 옛날이야기를 잘 해 주세요.'],['學父母','학부모','학생의 부모','오늘은 ___ 공개 수업 날이에요.']]},
+{c:'母',hun:'어미',eum:'모',s:5,e:'👩',o:'여자(女)에 점 두 개를 더해, 아기에게 젖을 먹이는 어머니를 나타냈어요.',w:[
+ ['母女','모녀','어머니와 딸','공원에서 ___가 손을 잡고 걸어요.'],['母國','모국','자기가 태어난 나라','___을 떠나 살아도 고향이 그리워요.'],['母校','모교','자기가 다녔던 학교','삼촌이 ___를 찾아가셨어요.'],['祖母','조모','할머니','___께서 맛있는 떡을 만들어 주셨어요.']]},
+{c:'女',hun:'여자',eum:'녀',s:3,e:'👧',o:'두 손을 모으고 다소곳이 앉은 여자의 모양이에요.',n:'시험에서는 "계집 녀"라고 해요. 낱말 맨 앞에서는 "여"로 읽어요(여자, 여왕).',w:[
+ ['少女','소녀','어린 여자아이','성냥팔이 ___ 이야기를 읽었어요.'],['女王','여왕','여자 임금','눈의 ___이 성을 얼음으로 만들었어요.','👸'],['長女','장녀','맏딸, 첫째 딸','엄마는 집안의 ___예요.'],['女子','여자','여성인 사람','우리 반에는 ___ 친구가 열 명이에요.']]},
+{c:'兄',hun:'형',eum:'형',s:5,e:'👦',o:'입(口)을 크게 벌린 사람(儿)이에요. 동생들 앞에서 앞장서서 말하는 형이에요.',w:[
+ ['兄弟','형제','형과 아우','우리 ___는 사이가 좋아요.','👬'],['兄夫','형부','언니의 남편','언니가 결혼해서 ___가 생겼어요.'],['親兄','친형','같은 부모에게서 태어난 형','민수는 준수의 ___이에요.']]},
+{c:'弟',hun:'아우',eum:'제',s:7,e:'👶',o:'막대기에 끈을 차례차례 감은 모양이에요. 차례가 뒤에 오는 동생을 뜻해요.',w:[
+ ['弟子','제자','스승에게 가르침을 받는 사람','선생님은 ___들을 아끼세요.'],['子弟','자제','남의 아들을 높여 부르는 말','이 학교는 마을 ___들이 다니는 곳이에요.'],['兄弟姉妹','형제자매','형제와 자매','저는 ___가 모두 네 명이에요.']]},
+{c:'長',hun:'긴',eum:'장',s:8,e:'🦒',o:'머리카락을 길게 늘어뜨린 노인의 모양이에요. "길다"와 "어른"을 뜻해요.',w:[
+ ['長短','장단','길고 짧음, 노래의 박자','북을 치며 ___을 맞췄어요.','🥁'],['成長','성장','자라서 커짐','콩나물이 하루하루 쑥쑥 ___했어요.','🌱'],['班長','반장','반을 대표하는 학생','친구들이 나를 ___으로 뽑아 주었어요.'],['校長','교장','학교에서 으뜸인 선생님','___ 선생님께서 칭찬해 주셨어요.']]},
+{c:'王',hun:'임금',eum:'왕',s:4,e:'👑',o:'하늘(一)·사람(一)·땅(一)을 하나로 이어 주는 사람이 임금이라고 풀이해요.',w:[
+ ['王子','왕자','임금의 아들','___가 백마를 타고 나타났어요.','🤴'],['國王','국왕','나라의 임금','___이 백성들을 궁궐로 불렀어요.'],['王室','왕실','임금의 집안','___ 가족이 궁궐에서 살았어요.','🏯']]},
+{c:'民',hun:'백성',eum:'민',s:5,e:'👥',o:'많은 사람들, 곧 백성을 뜻해요. 지금은 나라의 주인인 "국민"에 쓰여요.',w:[
+ ['國民','국민','한 나라를 이루는 사람들','___ 모두가 올림픽 선수를 응원했어요.'],['市民','시민','도시에 사는 사람','___들이 공원을 깨끗하게 청소했어요.'],['農民','농민','농사짓는 사람','가을이 되자 ___들이 벼를 거두었어요.','🧑‍🌾'],['住民','주민','그 지역에 사는 사람','아파트 ___들이 함께 나무를 심었어요.']]},
+{c:'國',hun:'나라',eum:'국',s:11,e:'🏰',o:'창(戈)을 들고 울타리(口) 안의 땅과 사람을 지키는 모양이에요.',w:[
+ ['國語','국어','우리나라 말, 국어 과목','___ 시간에 동시를 읽었어요.'],['外國','외국','다른 나라','방학에 ___ 여행을 갔어요.','✈️'],['國旗','국기','나라를 나타내는 깃발','우리나라 ___는 태극기예요.'],['愛國','애국','나라를 사랑함','유관순 열사는 ___하는 마음으로 만세를 외쳤어요.']]},
+{c:'韓',hun:'한국',eum:'한',s:17,e:'🇰🇷',o:'우리나라 이름에 쓰는 글자예요. 대한민국(大韓民國)의 "한"이 바로 이 글자예요.',n:'시험에서는 "한국 한" 또는 "나라 한"이라고 해요.',w:[
+ ['韓國','한국','우리나라','___의 김치는 세계에서 유명해요.'],['韓服','한복','우리나라 전통 옷','설날에 고운 ___을 입었어요.'],['韓食','한식','우리나라 전통 음식','불고기와 비빔밥은 맛있는 ___이에요.','🍚'],['大韓民國','대한민국','우리나라의 이름','우리나라의 이름은 ___이에요.']]},
+{c:'軍',hun:'군사',eum:'군',s:9,e:'🪖',o:'수레(車)를 빙 둘러싼(冖) 모양이에요. 수레를 끌고 나간 군대를 뜻해요.',w:[
+ ['軍人','군인','군대에서 나라를 지키는 사람','___ 아저씨들이 나라를 지켜요.'],['國軍','국군','나라의 군대','10월 1일은 ___의 날이에요.'],['海軍','해군','바다를 지키는 군대','___은 큰 배를 타고 바다를 지켜요.','⚓'],['空軍','공군','하늘을 지키는 군대','___ 비행기가 하늘을 날아요.']]},
+{c:'白',hun:'흰',eum:'백',s:5,e:'🤍',o:'해(日)에서 하얀 빛이 뻗어 나오는 모양이에요.',w:[
+ ['白雪','백설','흰 눈','___공주는 일곱 난쟁이와 살았어요.','❄️'],['白紙','백지','아무것도 쓰지 않은 흰 종이','___에 우리 가족을 그렸어요.','📄'],['白頭山','백두산','우리나라에서 가장 높은 산','___ 꼭대기에는 천지라는 호수가 있어요.'],['白鳥','백조','몸이 흰 큰 물새','호수 위에 ___가 우아하게 떠 있어요.','🦢']]},
+{c:'學',hun:'배울',eum:'학',s:16,e:'📚',o:'지붕 아래에서 두 손으로 아이(子)를 가르치며 배우는 모양이에요.',w:[
+ ['學生','학생','학교에서 배우는 사람','우리는 초등학교 ___이에요.','🎒'],['學年','학년','학교에서 일 년마다 올라가는 단계','나는 올해 2___이 되었어요.'],['入學','입학','학교에 들어감','동생이 초등학교에 ___했어요.'],['數學','수학','수와 셈을 배우는 과목','___ 시간에 덧셈을 배웠어요.','➗']]},
+{c:'校',hun:'학교',eum:'교',s:10,e:'🏫',o:'나무(木)로 울타리를 엮은 곳에서 사람들이 만나 공부했어요.',w:[
+ ['學校','학교','학생들이 모여 공부하는 곳','___ 운동장에서 줄넘기를 했어요.','🏫'],['校門','교문','학교의 문','아침에 ___ 앞에서 선생님이 반겨 주셨어요.'],['校歌','교가','학교를 나타내는 노래','입학식에서 ___를 불렀어요.','🎵'],['登校','등교','학교에 감','오늘은 8시 반까지 ___해요.']]},
+{c:'敎',hun:'가르칠',eum:'교',s:11,e:'🧑‍🏫',o:'아이(子)에게 셈(爻)을 가르치며 손에 회초리(攵)를 든 모양이에요.',w:[
+ ['敎室','교실','학교에서 수업하는 방','___에 들어가면 먼저 인사해요.'],['敎科書','교과서','학교 수업에 쓰는 책','가방에 ___를 챙겼어요.','📚'],['敎訓','교훈','본받을 만한 가르침','이 동화에는 정직하라는 ___이 담겨 있어요.']]},
+{c:'室',hun:'집',eum:'실',s:9,e:'🛏️',o:'지붕(宀) 아래 사람이 이르러(至) 머무는 방이에요.',w:[
+ ['室內','실내','방이나 건물의 안','비가 와서 ___에서 놀았어요.'],['化粧室','화장실','손을 씻고 볼일을 보는 곳','쉬는 시간에 ___에 다녀왔어요.','🚻'],['保健室','보건실','학교에서 아픈 학생을 돌보는 방','배가 아파서 ___에 갔어요.','🩹']]},
+{c:'先',hun:'먼저',eum:'선',s:6,e:'🥇',o:'발(止)이 사람(儿)보다 앞서 나간 모양이에요. "먼저"라는 뜻이에요.',w:[
+ ['先生','선생','학생을 가르치는 사람','우리 담임 ___님은 노래를 잘 부르세요.'],['先頭','선두','맨 앞','달리기에서 우리 반이 ___로 달렸어요.','🏃'],['先後','선후','먼저와 나중','일의 ___를 생각해서 차례대로 해요.'],['先祖','선조','먼 윗대의 조상','우리 ___들은 한글을 소중히 지켰어요.']]},
+{c:'生',hun:'날',eum:'생',s:5,e:'🌱',o:'땅(土) 위로 새싹이 쏙 돋아나는 모양이에요.',w:[
+ ['生命','생명','살아 있게 하는 힘, 목숨','작은 개미도 소중한 ___이에요.'],['生活','생활','살아가는 일','방학 동안 규칙적인 ___을 했어요.'],['出生','출생','세상에 태어남','동생의 ___을 온 가족이 축하했어요.','👶'],['生物','생물','살아 있는 모든 것','바닷속에는 여러 가지 ___이 살아요.','🐠']]},
+{c:'年',hun:'해',eum:'년',s:6,e:'📅',o:'사람이 다 익은 벼를 등에 지고 가는 모양이에요. 벼는 한 해에 한 번 익어서 "해"를 뜻해요.',n:'낱말 맨 앞에서는 "연"으로 읽어요.',w:[
+ ['新年','신년','새해','___을 맞아 떡국을 먹었어요.'],['少年','소년','어린 남자아이','___은 강아지와 함께 모험을 떠났어요.'],['每年','매년','해마다','우리 가족은 ___ 여름에 바다에 가요.'],['生年月日','생년월일','태어난 해와 달과 날','신청서에 ___을 적었어요.']]},
+{c:'靑',hun:'푸를',eum:'청',s:8,e:'💙',o:'새싹(生)과 우물(井)을 합친 글자로, 맑고 푸른 빛을 뜻해요.',w:[
+ ['靑年','청년','젊은 사람','씩씩한 ___이 할머니의 짐을 들어 드렸어요.'],['靑少年','청소년','십 대의 젊은이','이 도서관에는 ___ 책이 많아요.'],['靑山','청산','나무가 우거진 푸른 산','___에 맑은 물이 흘러요.','🏞️'],['靑色','청색','푸른색','바다가 맑은 ___으로 빛나요.']]}
+];
+// 8급이 아닌 글자 (낱말 풀이용)
+const X={第:'차례 제',角:'뿔 각',形:'모양 형',方:'모 방',色:'빛 색',夕:'저녁 석',段:'층계 단',字:'글자 자',歲:'해 세',旗:'기 기',記:'기록할 기',每:'매양 매',曜:'빛날 요',正:'바를 정',出:'날 출',災:'재앙 재',消:'사라질 소',器:'그릇 기',泳:'헤엄칠 영',手:'손 수',馬:'말 마',草:'풀 초',黃:'누를 황',氏:'성씨 씨',賞:'상줄 상',地:'땅 지',登:'오를 등',林:'수풀 림',江:'강 강',主:'주인 주',口:'입 구',說:'말씀 설',最:'가장 최',兒:'아이 아',科:'과목 과',心:'마음 심',空:'빌 공',海:'바다 해',洋:'큰바다 양',極:'극진할 극',斗:'말 두',星:'별 성',窓:'창 창',入:'들 입',家:'집 가',食:'밥 식',子:'아들 자',祖:'할아버지 조',夫:'지아비 부',親:'친할 친',少:'적을 소',姉:'손윗누이 자',妹:'누이 매',短:'짧을 단',成:'이룰 성',班:'나눌 반',市:'저자 시',農:'농사 농',住:'살 주',語:'말씀 어',愛:'사랑 애',服:'옷 복',雪:'눈 설',紙:'종이 지',頭:'머리 두',鳥:'새 조',數:'셈 수',歌:'노래 가',書:'글 서',訓:'가르칠 훈',內:'안 내',化:'될 화',粧:'단장할 장',保:'지킬 보',健:'굳셀 건',後:'뒤 후',命:'목숨 명',活:'살 활',物:'물건 물',新:'새 신',劇:'심할 극'};
+// 뜻 추리용 낱말 (8급 글자만으로 된 낱말, 직접 가르치지 않고 추리로 만남)
+const INF=[['山水','산수','산과 물, 자연의 경치'],['女軍','여군','여자 군인'],['先王','선왕','앞서 나라를 다스렸던 임금'],['年長','연장','나이가 더 많음'],['長生','장생','오래오래 삶'],['白金','백금','은처럼 하얗게 빛나는 귀한 금속'],['中年','중년','마흔 살 안팎의 나이'],['土木','토목','흙과 나무 등으로 길과 다리를 만드는 일'],['東門','동문','동쪽에 있는 문'],['西門','서문','서쪽에 있는 문'],['南門','남문','남쪽에 있는 문'],['小國','소국','작은 나라'],['大國','대국','큰 나라'],['火木','화목','불을 피우는 데 쓰는 나무, 땔나무'],['日月','일월','해와 달'],['父兄','부형','아버지와 형, 학생의 보호자'],['人生','인생','사람이 세상을 살아가는 일'],['水火','수화','물과 불'],['三國','삼국','세 나라 (고구려·백제·신라)'],['外人','외인','집안 밖의 사람, 남'],['靑白','청백','푸른 편과 흰 편 (운동회 청백전)'],
+ ['王國','왕국','임금이 다스리는 나라'],['女人','여인','어른이 된 여자'],['年金','연금','해마다 정해진 돈을 받는 것'],['水中','수중','물속'],['山中','산중','산속'],['年中','연중','한 해 동안'],['中門','중문','대문 안에 있는 가운데 문'],['大人','대인','어른'],['父女','부녀','아버지와 딸'],['白土','백토','빛깔이 흰 흙'],['民生','민생','백성의 살림살이'],['軍民','군민','군인과 일반 사람'],['十萬','십만','만의 열 배'],['一日','일일','하루'],['東北','동북','동쪽과 북쪽 사이의 방향'],['西南','서남','서쪽과 남쪽 사이의 방향'],['寸土','촌토','아주 좁은 땅'],['金山','금산','금이 나는 산'],['山火','산화','산에서 난 불, 산불'],['年月日','연월일','해와 달과 날'],['生年','생년','태어난 해'],['萬年','만년','아주 오랜 세월'],['王女','왕녀','임금의 딸'],['白日','백일','구름 없이 밝게 빛나는 해'],['長兄','장형','맏형'],['父王','부왕','임금인 아버지'],['先人','선인','앞 시대의 사람, 조상'],['韓人','한인','한국 사람'],['生母','생모','낳아 준 어머니'],['中學','중학','중학교를 줄인 말'],['大韓','대한','우리나라 이름 "대한민국"을 줄인 말']];
+
+const COURSES={
+ k12:{name:'교과서 한자어 1~2학년',short:'교과 1~2학년',desc:'학교·가족·요일·수·방향 등 1~2학년 교과서 주제별 한자어',lessons:[
+  ['學校先','학교에 가요','통합·학교'],['敎室門','우리 교실','통합·학교'],['父母兄','우리 가족','통합·가족'],['弟女寸','가족과 친척','통합·가족'],['日月火','요일 이야기 ①','통합·생활'],['水木金','요일 이야기 ②','통합·생활'],['土山生','요일과 자연','통합·자연'],['一二三','수를 세어요 ①','수학'],['四五六','수를 세어요 ②','수학'],['七八九','수를 세어요 ③','수학'],['十萬年','큰 수와 해','수학'],['大小中','크기와 위치','수학'],['東西南','방향 찾기 ①','통합·마을'],['北外長','방향 찾기 ②','통합·마을'],['韓國民','우리나라','통합·나라'],['王軍人','나라를 지키는 사람들','통합·나라'],['白靑','색깔','국어·미술']]},
+ g8:{name:'급수 한자 8급',short:'급수 8급',desc:'한자능력검정시험 8급 50자를 차례대로',lessons:[
+  ['一二三','하나 둘 셋'],['四五六','넷 다섯 여섯'],['七八九','일곱 여덟 아홉'],['十萬寸','열과 만, 마디'],['日月火','해·달·불'],['水木金','물·나무·쇠'],['土山人','흙·산·사람'],['大小中','크고 작고 가운데'],['東西南','동쪽 서쪽 남쪽'],['北門外','북쪽·문·바깥'],['父母女','아버지 어머니'],['兄弟長','형과 아우, 길다'],['王民國','임금과 백성, 나라'],['韓軍白','한국·군사·흰색'],['學校敎','배움과 학교'],['室先生','교실과 선생님'],['年靑','해와 푸름']]},
+ k34:{name:'교과서 한자어 3~4학년',short:'교과 3~4학년',desc:'다음 업데이트에서 열려요',locked:true,lessons:[]},
+ g7:{name:'급수 한자 7급',short:'급수 7급',desc:'다음 업데이트에서 열려요',locked:true,lessons:[]},
+ k56:{name:'교과서 한자어 5~6학년',short:'교과 5~6학년',desc:'다음 업데이트에서 열려요',locked:true,lessons:[]}
+};
+const COLORS=[{id:'green',n:'초록',m:'#5DBB7A',d:'#3B9159'},{id:'sky',n:'하늘',m:'#5AAEE6',d:'#3A88C0'},{id:'pink',n:'분홍',m:'#F28DB2',d:'#CF6790'},{id:'purple',n:'보라',m:'#A68BEA',d:'#7D63C6'},{id:'orange',n:'주황',m:'#F5A04A',d:'#D27E2A'}];
+const STAGES=[{n:'묵룡 알',x:0},{n:'아기 묵룡',x:30},{n:'꼬마 묵룡',x:150},{n:'씩씩한 묵룡',x:400},{n:'수호 묵룡',x:800}];
+const GAMES=[
+ {id:'memory',i:'🃏',n:'짝꿍 카드',d:'카드를 뒤집어 짝을 찾아요'},
+ {id:'bingo',i:'🎯',n:'한자 빙고',d:'소리를 듣고 빙고판에서 찾아요'},
+ {id:'assemble',i:'🧩',n:'글자 조립소',d:'글자 조각을 모아 낱말을 만들어요'},
+ {id:'board',i:'🎲',n:'주사위 숲길',d:'주사위를 굴려 묵룡 둥지까지 가요'},
+ {id:'detective',i:'🔍',n:'그림 탐정',d:'그림에 어울리는 글자를 찾아요'},
+ {id:'dictation',i:'✏️',n:'받아쓰기',d:'잘 듣고 알맞은 글자를 골라요'}];
+const BADGES=[
+ {id:'first',i:'👣',n:'첫 발자국',d:'첫 모험을 마쳤어요',f:p=>p.adv>=1},
+ {id:'s3',i:'🔥',n:'사흘 연속',d:'3일 연속 공부하기',f:p=>p.best>=3},
+ {id:'s7',i:'🌈',n:'일주일 연속',d:'7일 연속 공부하기',f:p=>p.best>=7},
+ {id:'s14',i:'🌟',n:'두 주 연속',d:'14일 연속 공부하기',f:p=>p.best>=14},
+ {id:'s30',i:'🏔️',n:'한 달 연속',d:'30일 연속 공부하기',f:p=>p.best>=30},
+ {id:'s100',i:'🐉',n:'백일 용사',d:'100일 연속 공부하기',f:p=>p.best>=100},
+ {id:'h10',i:'🌱',n:'새싹 숲',d:'한자 10자 배우기',f:p=>nL(p)>=10},
+ {id:'h30',i:'🌳',n:'무성한 숲',d:'한자 30자 배우기',f:p=>nL(p)>=30},
+ {id:'h50',i:'🏞️',n:'8급 숲 완성',d:'한자 50자 모두 배우기',f:p=>nL(p)>=50},
+ {id:'w30',i:'🍎',n:'낱말 열매',d:'한자어 30개 만나기',f:p=>nS(p)>=30},
+ {id:'w100',i:'🧺',n:'열매 바구니',d:'한자어 100개 만나기',f:p=>nS(p)>=100},
+ {id:'allg',i:'🎲',n:'놀이 탐험가',d:'게임 6가지를 모두 해 보기',f:p=>GAMES.every(g=>p.games[g.id])},
+ {id:'rev50',i:'🔁',n:'복습왕',d:'복습 문제 50개 맞히기',f:p=>(p.revOk||0)>=50},
+ {id:'master',i:'✨',n:'금빛 나무',d:'처음으로 "내 것이 된 한자" 만들기',f:p=>nM(p)>=1},
+ {id:'infer',i:'🔎',n:'뜻 추리 탐정',d:'뜻 추리 10번 맞히기',f:p=>p.infer.ok>=10},
+ {id:'together',i:'🤝',n:'함께라서 좋아',d:'어른과 함께 모험 마치기',f:p=>(p.togetherDone||0)>=1}];
+const PRAISE=['정답이에요! 🎉','딩동댕! 잘했어요','우와, 맞았어요!','최고예요! ⭐','척척박사네요!'];
+const IV=[0,1,3,7,14,30];
+
+/* 획순 데이터: hanzi-writer-data 2.0.1 (Make Me a Hanzi, Arphic PL 라이선스) · 1024 좌표, 획 순서대로 s=모양, m=가운데 선 */
+const STK={'一':{s:["M518 382Q572 385 623 389Q758 399 900 383Q928 379 935 390Q944 405 930 419Q896 452 845 475Q829 482 798 473Q723 460 480 434Q180 409 137 408Q130 408 124 408Q108 408 106 395Q105 380 127 363Q146 348 183 334Q195 330 216 338Q232 344 306 354Q400 373 518 382Z"],m:[[121,393,193,372,417,402,827,434,920,401]]},
+'七':{s:["M433 375Q649 436 864 443Q889 443 895 453Q901 469 887 480Q812 531 750 510Q698 494 450 429Q441 428 434 424L387 414Q314 398 270 386Q204 367 103 353Q88 352 88 339Q89 326 111 313Q130 303 166 293Q179 290 196 301Q253 328 386 363L433 375Z","M386 363Q386 159 409 117Q445 69 575 64Q719 58 792 93Q805 102 804 113Q800 132 779 142Q749 157 729 154Q716 154 707 147Q680 125 543 118Q473 118 450 150Q426 189 433 375L434 424Q437 644 465 686Q481 714 452 734Q416 759 394 765Q363 772 354 758Q347 748 357 739Q391 705 388 630Q391 551 387 414L386 363Z"],m:[[101,340,172,328,492,417,767,476,820,476,882,461],[364,750,397,734,424,701,407,327,414,194,431,131,477,103,544,91,658,97,747,116,784,112]]},
+'三':{s:["M326 667Q283 663 312 640Q369 610 428 623Q543 641 665 661Q720 671 729 678Q739 688 735 698Q728 711 693 722Q660 731 561 701Q420 673 326 667Z","M329 421Q304 417 332 392Q348 379 385 383Q557 405 685 416Q721 420 709 440Q694 462 657 472Q621 479 558 466Q435 441 329 421Z","M130 165Q102 162 122 139Q140 120 163 113Q191 104 212 110Q515 179 929 157Q930 158 933 157Q960 156 967 167Q974 183 953 201Q884 255 835 246Q643 210 130 165Z"],m:[[316,655,367,645,416,648,660,692,722,692],[331,407,375,405,628,443,657,443,700,432],[127,152,158,142,195,139,500,178,846,204,881,200,955,174]]},
+'中':{s:["M254 596Q244 603 202 608Q189 611 185 605Q178 598 189 580Q228 507 254 384Q260 347 282 324Q303 300 307 318Q310 328 310 343L306 381Q305 390 303 399Q276 513 267 556 C 261 585 259 594 254 596Z","M752 425Q765 462 777 498Q793 546 828 578Q853 603 821 624Q793 648 762 666Q743 679 717 668Q677 655 615 646Q575 642 535 636L476 628Q427 622 380 613Q307 603 254 596 C 224 592 237 551 267 556Q274 556 286 559Q400 587 476 593L534 600Q604 609 698 615Q717 616 724 607Q739 583 693 435 C 684 406 742 397 752 425Z","M530 370Q630 380 764 386Q776 387 778 397Q779 406 752 425 C 730 441 723 440 693 435Q606 420 530 407L475 399Q385 389 306 381 C 276 378 280 341 310 343Q314 343 321 343Q382 356 475 365L530 370Z","M475 365Q472 17 485 -11Q486 -12 488 -16Q503 -32 512 -10Q530 32 530 370L530 407Q531 519 534 600L535 636Q538 742 559 778Q566 794 545 811Q520 830 475 843Q454 847 441 833Q431 826 444 812Q472 787 475 753Q475 704 476 628L476 593Q476 517 476 419Q475 409 475 399L475 365Z"],m:[[194,598,229,572,236,553,295,323],[262,591,281,579,471,611,719,641,741,638,777,596,732,460,702,446],[316,350,330,365,689,409,749,405,768,398],[449,823,476,817,513,781,505,656,499,-10]]},
+'九':{s:["M388 486Q319 225 74 56Q59 44 74 41Q92 42 133 60Q217 103 278 166Q348 230 380 303Q438 441 451 505L456 539Q456 593 481 702Q487 733 500 762Q510 784 490 795Q430 835 398 823Q382 817 390 799Q411 762 412 689Q402 550 396 523L388 486Z","M451 505Q520 527 570 535Q592 539 598 534Q602 527 598 511Q490 112 639 36Q676 18 741 10Q877 -3 968 54Q989 66 980 90Q961 156 954 255Q953 274 946 273Q940 273 935 254Q925 212 913 164Q903 127 879 104Q860 86 800 80Q733 70 679 89Q631 104 616 136Q594 173 602 259Q612 350 654 464Q673 512 702 538Q718 551 717 564Q716 576 646 607Q631 617 613 602Q568 572 456 539L396 523Q335 510 278 493Q232 483 156 482Q141 483 144 467Q147 455 174 439Q205 421 243 437Q321 465 388 486L451 505Z"],m:[[402,808,428,792,451,765,424,515,412,464,374,360,330,274,266,191,170,103,78,49],[153,472,190,458,227,459,587,561,638,560,646,551,639,520,618,464,589,349,576,202,589,136,603,107,642,70,679,55,736,43,801,43,872,55,917,78,932,98,946,267]]},
+'二':{s:["M308 603Q260 597 293 574Q339 544 436 558Q551 576 673 596Q731 608 741 615Q753 625 747 636Q738 652 702 663Q669 672 559 641Q424 610 308 603Z","M517 212Q569 213 620 219Q756 229 896 214Q921 210 929 220Q938 235 924 248Q891 279 842 302Q826 309 797 301Q728 286 481 261Q172 236 155 234Q142 234 128 234Q113 234 111 221Q110 208 131 191Q150 176 185 163Q197 159 217 167Q233 173 306 183Q400 202 517 212Z"],m:[[293,587,386,581,688,633,733,629],[126,219,195,200,469,236,823,263,916,230]]},
+'五':{s:["M499 673Q590 688 686 701Q750 711 761 720Q771 729 767 738Q760 753 727 762Q693 772 598 744Q453 713 314 705Q272 701 301 680Q340 653 430 664Q440 665 452 667L499 673Z","M482 468Q494 520 507 568Q525 635 524 641Q512 660 499 673 C 479 695 448 697 452 667Q461 625 443 526Q436 499 428 460L419 421Q395 322 357 159 C 350 130 401 136 408 165Q442 307 472 429L482 468Z","M641 177Q678 360 738 416Q759 438 741 459Q722 475 661 505Q640 514 614 505Q545 481 482 468L428 460Q355 450 280 446Q261 446 262 434Q265 424 286 416Q314 401 357 413Q388 417 419 421L472 429Q527 439 584 446Q614 452 625 440Q643 421 637 384Q615 266 585 174 C 576 145 635 148 641 177Z","M357 159Q329 158 301 152Q159 130 72 134Q62 135 53 128Q46 121 52 110Q64 94 119 62Q134 55 156 64Q339 130 526 140Q670 152 937 99Q943 99 949 97Q970 93 977 103Q984 115 964 132Q883 199 844 191Q840 191 837 189Q807 183 641 177L585 174Q521 178 408 165L357 159Z"],m:[[304,694,343,685,400,686,704,735,753,733],[460,663,489,633,483,587,391,195,375,174,362,168],[273,435,308,428,345,430,616,476,654,467,685,434,619,200,592,179],[63,118,138,97,419,149,654,161,855,153,905,138,966,110]]},
+'人':{s:["M475 485Q547 653 563 683Q573 695 565 708Q558 721 519 742Q491 757 480 754Q462 750 465 730Q484 537 292 308Q280 296 269 284Q212 217 68 102Q58 92 66 89Q76 86 90 92Q190 138 274 210Q380 294 462 456L475 485Z","M462 456Q480 423 575 292Q666 171 733 101Q764 67 793 69Q881 75 958 79Q991 80 992 89Q993 98 956 112Q772 178 740 205Q617 304 490 466Q481 476 475 485 C 457 509 447 482 462 456Z"],m:[[483,736,508,702,511,678,473,552,408,416,328,303,271,244,144,139,72,95],[474,477,477,459,490,439,571,333,691,200,753,145,798,119,986,90]]},
+'兄':{s:["M322 712Q310 716 283 720Q270 723 267 718Q260 711 270 694Q307 622 329 503Q333 467 355 444Q374 422 379 438Q382 448 382 460L380 491Q379 503 376 516Q349 640 343 678 C 338 708 338 708 322 712Z","M642 526Q679 649 723 681Q744 703 727 724Q642 796 573 762Q468 731 322 712 C 292 708 313 674 343 678Q353 678 574 718Q599 722 610 712Q623 699 618 674Q602 596 581 534 C 572 505 633 497 642 526Z","M542 484Q587 491 648 497Q658 498 660 507Q660 514 642 526 C 618 543 610 541 581 534Q469 506 380 491 C 350 486 352 465 382 460Q394 457 407 460Q444 470 504 478L542 484Z","M340 394Q346 244 127 78Q103 68 115 59Q142 49 239 114Q320 166 394 313Q404 332 417 351Q426 360 421 371Q414 381 385 401Q363 414 353 413Q340 410 340 394Z","M966 138Q950 172 930 280Q929 296 921 302Q914 306 910 286Q885 174 864 137Q825 94 700 102Q651 106 613 124Q579 142 570 164Q543 228 580 431Q589 464 542 484 C 516 499 497 507 504 478Q504 474 507 463Q520 420 516 378Q503 194 517 143Q521 113 548 89Q639 10 843 41Q853 44 865 46Q913 59 959 91Q981 109 966 138Z"],m:[[275,711,304,688,314,669,368,444],[331,710,357,698,601,744,643,732,670,702,667,691,624,567,589,538],[388,484,399,476,586,512,650,507],[355,398,376,358,347,283,312,224,240,143,154,80,120,66],[511,472,539,455,547,441,534,261,542,158,565,117,611,88,702,67,770,67,828,75,883,96,916,124,920,295]]},
+'先':{s:["M365 586Q368 598 406 663Q415 676 399 688Q354 718 332 710Q322 707 325 693Q343 618 271 511Q268 511 240 468Q233 452 247 458Q290 471 351 562L365 586Z","M538 574Q700 613 707 619Q717 628 711 636Q704 648 674 655Q643 659 613 647Q579 635 542 623L489 608Q429 595 365 586 C 335 582 323 574 351 562Q387 543 463 557Q473 560 488 562L538 574Z","M526 433Q532 506 538 574L542 623Q546 695 567 784Q571 794 550 811Q514 830 489 836Q473 840 464 831Q457 824 464 807Q486 774 486 752Q489 683 489 608L488 562Q487 498 482 425 C 480 395 524 403 526 433Z","M570 401Q592 404 812 419Q833 420 837 428Q841 441 825 453Q771 489 733 480Q654 459 526 433L482 425Q346 401 191 375Q170 372 187 355Q217 328 257 338Q368 375 520 395L570 401Z","M388 341Q388 227 260 111Q257 110 255 107Q219 73 134 18Q125 11 131 7Q162 -5 263 57Q357 111 432 250Q445 272 462 293Q472 302 467 313Q463 325 433 345Q412 361 402 359Q389 358 388 341Z","M974 49Q956 101 947 192Q946 208 938 214Q929 220 925 198Q906 87 890 67Q857 31 729 31Q659 32 628 45Q603 58 596 76Q572 143 590 261Q594 306 607 332Q622 371 570 401 C 546 419 508 422 520 395Q544 353 539 295Q533 79 563 34Q606 -32 831 -22Q919 -18 955 0Q986 16 974 49Z"],m:[[336,698,365,666,341,592,298,519,249,467],[358,566,478,582,653,630,701,629],[476,821,515,789,524,768,507,459,488,433],[189,365,246,360,449,403,736,447,788,445,826,434],[404,343,422,311,421,298,387,225,343,160,305,119,243,67,175,26,136,12],[527,391,564,369,573,352,560,214,561,139,580,53,616,23,695,6,772,3,877,16,925,37,933,98,935,205]]},
+'八':{s:["M317 465Q318 338 155 190Q136 178 79 126Q67 110 85 113Q110 114 146 137Q258 209 325 305Q368 363 406 409Q419 422 404 441Q355 486 329 484Q316 483 317 465Z","M446 687Q507 636 530 577Q608 343 711 190Q732 163 846 151Q892 147 958 141Q983 140 984 146Q984 152 963 163Q756 269 675 396Q621 480 551 644Q530 690 483 702Q449 709 445 702Q438 692 446 687Z"],m:[[331,470,358,421,291,303,204,206,143,156,89,123],[452,695,484,681,525,640,645,378,693,302,755,227,839,190,978,147]]},
+'六':{s:["M472 702Q502 677 534 645Q552 629 572 630Q585 631 592 649Q598 668 585 705Q578 727 541 744Q447 771 436 764Q429 758 432 742Q436 729 472 702Z","M128 467Q103 464 121 443Q137 427 159 419Q184 412 205 418Q427 478 848 478Q875 478 901 477Q925 477 931 487Q938 502 918 519Q846 571 778 551Q514 509 128 467Z","M346 344Q342 241 202 138Q169 116 152 101Q139 86 157 88Q220 85 332 184Q405 257 428 279Q443 291 430 311Q391 359 360 361Q347 361 346 344Z","M611 302Q675 223 752 114Q767 86 785 79Q795 76 806 87Q822 100 815 155Q811 224 623 335Q620 338 618 338Q608 347 603 332Q600 316 611 302Z"],m:[[441,756,455,743,531,705,568,654],[125,455,184,444,454,484,805,517,851,515,918,494],[360,347,383,297,347,242,292,181,249,145,162,97],[611,333,753,186,774,154,789,97]]},
+'北':{s:["M343 159Q343 147 361 108Q368 92 375 89Q381 83 388 90Q395 94 405 115Q408 124 412 224Q406 578 426 645Q433 660 431 672Q424 682 371 713Q349 729 330 714Q326 710 331 694Q352 666 358 585Q361 522 361 466L361 426Q361 249 344 197L343 159Z","M361 466Q345 470 331 466Q208 436 163 431Q150 430 148 421Q145 411 161 400Q200 375 241 390Q302 415 361 426 C 390 432 390 460 361 466Z","M344 197Q263 173 169 148Q154 144 129 145Q116 144 113 131Q112 116 122 108Q147 90 185 70Q197 67 210 77Q244 108 343 159 C 370 173 373 205 344 197Z","M597 384Q772 472 828 489Q837 492 848 494Q876 501 867 524Q857 546 829 570Q804 592 788 592Q773 593 775 576Q772 534 680 471Q640 443 598 411 C 574 393 570 371 597 384Z","M942 82Q961 100 940 135Q916 198 908 279Q908 291 899 300Q887 306 884 280Q877 250 867 201Q860 153 846 134Q840 121 815 116Q776 106 722 110Q682 111 656 122Q619 137 607 181Q595 220 597 384L598 411Q598 570 626 682Q632 712 638 719Q648 744 627 759Q596 787 554 797Q533 801 524 792Q515 782 523 771Q548 750 549 671Q534 262 555 169Q570 114 611 82Q680 31 846 44Q862 47 878 50Q923 63 942 82Z"],m:[[341,707,367,685,388,652,386,287,376,177,381,102],[160,418,189,411,227,414,334,443,352,459],[129,129,187,113,323,169,338,191],[786,581,796,567,805,529,751,489,609,404,607,390],[534,781,573,755,590,727,574,562,569,334,579,183,599,134,640,97,709,78,793,76,844,83,873,95,893,111,895,126,896,291]]},
+'十':{s:["M541 450Q754 474 901 462Q935 462 940 467Q949 482 935 494Q862 560 793 538Q745 529 542 499L482 492Q355 479 290 469Q218 457 112 455Q97 455 96 443Q95 430 116 414Q134 401 168 388Q180 384 199 393Q215 399 292 413Q377 434 482 444L541 450Z","M482 444Q482 240 478 171Q475 -6 495 -40Q511 -56 521 -34Q539 21 540 425Q540 438 541 450L542 499Q543 722 569 763Q576 781 555 798Q528 819 482 830Q461 836 447 821Q437 812 450 799Q480 774 482 739Q482 651 482 492L482 444Z"],m:[[109,442,177,422,373,456,819,505,869,499,932,476],[456,811,484,803,522,767,512,593,507,-33]]},
+'南':{s:["M505 630Q571 643 640 654Q694 664 702 671Q711 678 707 688Q700 700 670 709Q643 715 517 679L459 667Q395 658 323 653Q286 649 312 630Q351 605 424 618Q436 621 452 621L505 630Z","M472 500Q488 567 505 630L517 679Q520 698 557 796Q563 806 545 824Q514 849 491 858Q475 864 466 857Q457 851 462 834Q478 801 475 781Q468 726 459 667L452 621Q440 560 428 494 C 423 464 465 471 472 500Z","M199 459Q184 474 160 478Q154 482 149 474Q145 467 148 454Q176 399 178 354Q182 248 168 130Q164 105 173 84Q186 62 204 49Q219 39 221 51Q228 55 231 78Q238 103 231 193Q224 349 228 405Q229 415 229 424 C 229 435 222 440 199 459Z","M594 474Q661 480 775 484Q793 484 799 475Q809 468 809 421Q812 228 785 117Q776 78 743 83Q706 90 673 95Q658 101 658 93Q657 86 669 73Q745 12 765 -21Q775 -37 787 -35Q803 -34 818 -4Q857 65 870 256Q879 443 892 465Q911 487 896 493Q880 511 840 529Q815 545 788 535Q752 525 660 518Q555 511 472 500L428 494Q398 491 372 486Q284 470 199 459 C 169 455 200 417 229 424Q322 452 558 471L594 474Z","M360 402Q381 356 400 343Q410 337 420 346Q427 353 429 367Q426 398 377 428Q367 435 358 434Q354 434 353 424Q352 415 360 402Z","M545 338Q608 420 613 426Q626 436 620 445Q613 458 594 474 C 571 494 554 501 558 471Q564 449 523 353Q516 341 513 331 C 503 303 527 314 545 338Z","M499 292Q514 296 648 312Q657 311 665 322Q666 332 647 341Q610 359 548 339Q547 339 545 338L513 331Q468 325 344 308Q319 307 338 291Q368 270 393 275Q417 281 447 283L499 292Z","M511 189Q548 193 679 194Q695 194 698 201Q702 210 690 221Q644 255 589 239Q555 233 513 224L457 216Q390 207 318 198Q302 197 313 182Q337 161 379 170Q413 179 458 184L511 189Z","M466 44Q470 23 475 15Q479 8 486 11Q493 14 497 26Q506 56 511 189L513 224Q513 239 519 263Q522 278 510 286Q504 290 499 292 C 472 306 437 311 447 283Q453 273 457 216L458 184Q464 57 466 44Z"],m:[[315,643,356,635,410,638,652,683,695,682],[476,844,515,796,455,519,435,500],[158,467,185,437,198,410,204,299,200,119,212,53],[207,456,235,445,467,482,779,508,808,508,832,493,848,471,841,296,832,186,813,88,782,39,685,76,666,91],[362,426,404,373,408,356],[564,468,585,438,537,350,518,335],[339,300,385,294,577,326,655,324],[316,190,368,186,615,219,661,215,689,206],[454,282,485,258,483,21]]},
+'四':{s:["M181 600Q160 612 138 618Q131 621 125 615Q115 608 127 596Q187 488 192 250Q193 186 231 153Q234 150 239 147Q258 141 260 176Q260 179 260 181L256 222Q255 237 233 382Q223 476 218 552 C 216 582 208 586 181 600Z","M717 200Q732 151 739 143Q746 131 756 132Q768 133 780 152Q822 206 870 461Q880 527 903 564Q916 579 914 589Q915 605 874 643Q825 691 790 679Q784 679 778 677Q756 673 680 666Q451 647 302 616Q220 604 181 600 C 151 597 189 543 218 552Q222 553 236 558Q294 576 370 589L410 596Q485 611 523 611L589 618Q686 630 773 631Q798 632 810 616Q825 603 823 571Q820 493 784 354Q759 245 748 231Q747 227 739 225Q733 226 726 230 C 709 223 709 223 717 200Z","M370 589Q391 546 349 422Q336 386 316 357Q306 341 296 326Q292 322 289 316Q286 307 295 308Q322 308 372 379Q408 436 424 507Q428 529 436 547Q443 559 439 570Q429 585 410 596 C 385 612 359 617 370 589Z","M523 611Q524 608 529 604Q545 585 545 536Q546 493 546 439Q545 384 570 366Q592 345 691 351Q725 352 735 368Q745 378 738 386Q731 393 634 397Q589 400 587 441Q581 502 605 588Q609 603 601 612Q597 616 589 618 C 562 631 504 634 523 611Z","M260 181Q270 180 283 180Q421 199 717 200 C 747 200 748 209 726 230Q693 269 620 252Q418 225 256 222 C 226 221 230 183 260 181Z"],m:[[132,606,163,582,189,529,224,229,244,159],[187,595,227,581,466,625,712,650,801,654,833,638,866,588,816,348,781,226,760,193,755,149],[377,587,408,560,387,462,351,379,298,316],[530,611,571,584,566,446,579,393,608,377,638,373,699,371,732,379],[263,216,285,201,651,229,697,224,706,211]]},
+'國':{s:["M248 751Q236 763 213 771Q201 777 188 772Q179 766 186 751Q211 655 213 647Q228 479 206 249Q200 194 182 128Q164 62 207 10Q220 -6 232 9Q242 22 245 36L250 78Q254 117 254 175Q264 665 268 697Q268 701 268 704 C 269 734 270 736 248 751Z","M750 68Q771 47 795 -3Q805 -27 821 -26Q834 -25 844 -3Q877 57 853 252Q829 693 853 728Q854 734 859 737Q871 752 870 760Q869 773 834 797Q779 834 764 831Q754 831 745 827Q727 820 672 810Q510 791 317 755Q281 751 248 751 C 218 750 239 697 268 704Q278 705 295 710Q310 716 440 739Q603 767 728 777Q755 778 761 765Q788 738 788 416Q791 220 793 175Q797 124 786 103Q782 90 776 90 C 764 63 740 82 750 68Z","M542 580L650 604Q651 607 654 609Q655 619 635 627Q608 646 537 619Q536 619 534 618L499 608Q493 608 326 573Q302 569 322 555Q352 534 375 541Q432 557 506 572L542 580Z","M331 473Q324 477 304 480Q295 481 292 478Q288 474 294 461Q315 418 328 348Q331 327 343 313Q356 297 361 308Q362 315 364 326L361 356Q349 429 348 450 C 347 466 347 466 331 473Z","M469 372Q484 435 501 453Q520 474 501 485Q485 495 463 508Q447 517 432 507Q413 494 387 487Q365 480 331 473 C 302 467 319 443 348 450Q351 451 415 466Q434 469 438 462Q441 459 430 377 C 426 347 462 343 469 372Z","M364 326Q436 341 479 345Q489 346 489 354Q489 360 469 372L430 377Q424 377 421 375Q387 363 361 356 C 332 348 335 320 364 326Z","M287 244Q277 243 276 234Q275 224 282 218Q301 206 327 193Q334 192 344 198Q357 210 476 275Q492 282 502 293Q512 300 512 307Q508 311 498 308Q320 245 287 244Z","M597 302Q643 220 698 179Q720 161 732 161Q744 160 750 169Q756 176 749 211Q743 268 747 311Q750 333 743 335Q737 336 729 316Q705 249 688 260Q670 272 623 341L600 388Q570 452 542 580L534 618Q531 648 530 673Q537 694 533 703Q529 710 509 720Q491 730 480 731Q471 730 470 730Q452 724 468 707Q480 704 499 608L506 572Q534 437 578 342L597 302Z","M578 342Q545 284 448 174Q441 170 451 168Q511 183 593 296Q594 300 597 302L623 341Q651 387 690 466Q705 494 705 498Q702 507 690 516Q677 526 660 529Q641 533 632 529Q625 528 628 516Q640 476 600 388L578 342Z","M638 678Q660 659 684 635Q696 625 708 625Q717 626 721 637Q725 649 718 673Q714 689 688 701Q631 725 616 719Q612 715 613 705Q616 695 638 678Z","M245 36Q252 36 260 37Q417 62 750 68 C 780 69 795 69 776 90Q769 100 749 116Q730 129 693 123Q447 86 250 78 C 220 77 215 34 245 36Z"],m:[[196,761,223,732,234,698,241,595,233,247,214,98,220,16],[255,747,283,730,520,772,749,801,776,796,804,770,815,752,814,459,829,151,826,100,814,57,819,-9],[322,564,359,559,586,612,617,616,646,611],[299,473,319,456,328,434,353,313],[340,471,353,464,438,486,457,482,470,466,452,394,438,389],[371,334,378,345,430,358,480,354],[289,231,330,224,437,268,443,276,460,278,465,286,479,288,505,306],[472,718,493,708,507,688,514,623,536,519,587,368,630,290,681,232,708,221,727,264,731,301,742,329],[640,520,664,488,647,436,603,345,524,236,455,174],[621,711,685,672,706,641],[252,42,268,59,316,64,705,96,769,90]]},
+'土':{s:["M535 428Q602 441 673 451Q739 464 749 472Q759 481 755 490Q748 505 715 514Q681 523 647 511Q592 495 537 481L483 470Q395 454 293 449Q251 445 280 424Q320 397 409 409Q445 415 483 420L535 428Z","M521 151Q528 293 535 428L537 481Q538 595 566 720Q570 733 546 751Q504 773 475 779Q456 783 446 773Q436 763 447 746Q481 694 481 658Q484 567 483 470L483 420Q480 290 471 145 C 469 115 520 121 521 151Z","M471 145Q314 130 132 111Q107 110 125 87Q162 50 211 60Q452 121 842 114Q875 113 903 112Q928 111 935 122Q942 137 922 154Q847 212 795 192Q689 176 521 151L471 145Z"],m:[[283,438,312,430,379,430,486,445,692,487,741,485],[461,760,517,714,518,685,498,173,476,153],[129,99,188,87,378,115,818,156,866,149,922,129]]},
+'外':{s:["M308 582Q324 603 341 625Q363 659 381 675Q391 685 387 697Q384 710 359 732Q334 751 317 751Q299 750 306 730Q315 706 289 651Q235 554 132 436Q122 427 119 422Q115 412 129 413Q172 419 298 570L308 582Z","M298 570Q313 555 348 561Q414 579 419 569Q426 551 400 485Q378 412 302 313Q227 207 102 105Q77 89 99 91Q190 100 312 243Q412 378 463 483Q491 546 511 564Q524 574 518 587Q512 599 455 621Q442 627 418 614Q385 598 308 582 C 283 577 283 577 298 570Z","M210 413Q258 364 295 347Q308 346 316 357Q320 367 318 382Q303 422 221 446Q220 447 219 447Q206 451 197 447Q191 446 194 435Q195 425 210 413Z","M649 540Q649 696 669 770Q682 797 652 818Q636 830 609 845Q584 861 563 846Q557 840 564 824Q601 772 602 718Q603 640 607 551Q606 397 603 226Q599 142 577 64Q567 22 594 -41Q601 -60 609 -63Q616 -70 624 -61Q631 -57 642 -35Q652 -8 651 24Q650 76 649 513L649 540Z","M649 513Q742 467 881 378Q903 362 919 362Q928 363 932 375Q942 391 918 431Q885 492 649 540 C 620 546 622 526 649 513Z"],m:[[316,738,328,728,344,693,307,625,204,491,155,440,127,421],[307,573,357,576,398,589,437,592,462,572,406,428,309,279,209,170,154,126,104,97],[204,439,266,399,300,367],[576,837,631,783,628,261,612,34,615,-49],[660,533,664,522,778,478,854,439,887,416,916,378]]},
+'大':{s:["M494 476Q542 485 795 501Q817 502 822 512Q826 525 808 540Q750 580 707 569Q631 550 500 522L436 509Q331 490 213 469Q189 465 208 447Q241 420 294 432Q357 453 431 465L494 476Z","M487 437Q491 456 494 476L500 522Q510 711 528 763Q534 776 523 786Q501 805 459 822Q434 832 414 825Q390 816 410 796Q444 762 444 726Q445 602 436 509L431 465Q398 275 310 179Q303 173 297 166Q251 118 148 55Q133 48 130 43Q124 36 144 34Q195 34 300 104Q385 173 414 218Q444 266 480 396L487 437Z","M480 396Q501 357 575 245Q657 124 718 56Q746 22 774 22Q856 28 928 32Q959 33 959 41Q960 50 927 66Q753 144 719 174Q614 267 500 419Q493 429 487 437 C 469 461 465 422 480 396Z"],m:[[210,458,268,453,514,503,719,534,770,529,810,517],[416,810,444,799,482,759,469,518,448,394,426,320,386,231,361,196,307,140,202,67,138,41],[486,430,500,393,576,284,660,182,722,118,774,77,953,42]]},
+'女':{s:["M445 467Q485 576 514 665Q526 705 540 732Q562 757 524 789Q478 825 449 826Q433 827 429 815Q425 806 434 798Q455 774 453 731Q441 625 390 461L375 416Q348 338 337 327Q313 309 331 280Q340 270 356 274Q393 283 491 221L535 192Q637 132 757 11Q776 -8 789 -7Q805 -6 805 17Q804 54 773 100Q755 127 701 153Q599 213 569 230L519 256Q395 320 393 327Q393 333 427 423L445 467Z","M695 496Q656 544 628 541Q612 540 614 522Q618 504 617 486L606 440Q566 319 519 256L491 221Q406 128 277 81Q256 74 237 65Q221 59 233 53Q248 49 289 53Q356 63 413 95Q473 122 535 192L569 230Q600 275 659 395Q669 423 688 447 C 705 472 710 479 695 496Z","M688 447Q757 456 931 443Q956 440 962 449Q969 462 957 475Q926 503 881 524Q866 531 839 522Q767 507 695 496L617 486Q461 471 445 467L390 461Q314 454 268 447Q189 435 73 434Q60 434 57 422Q57 409 76 394Q94 381 126 369Q138 365 156 373Q205 392 375 416L427 423Q448 426 606 440L688 447Z"],m:[[442,810,475,787,498,746,453,573,373,346,365,309,498,244,675,132,740,81,787,11],[628,527,652,492,651,462,587,314,549,249,520,214,452,148,384,105,321,78,238,58],[70,420,138,402,383,440,857,487,913,474,950,458]]},
+'學':{s:["M287 710Q320 731 353 753Q366 766 385 774Q401 781 392 795Q382 808 362 818Q343 828 334 826Q324 825 328 815Q329 802 282 733Q278 729 275 723 C 260 697 262 694 287 710Z","M331 479Q321 522 314 558L309 581Q303 611 298 643L295 666Q292 703 287 710L275 723Q253 736 228 739Q215 742 208 735Q202 728 210 715Q234 684 248 648Q261 612 294 472 C 301 443 338 450 331 479Z","M298 643Q353 656 395 664Q413 668 405 678Q396 688 376 691Q345 691 295 666 C 268 653 269 636 298 643Z","M314 558Q365 567 402 575Q421 579 413 590Q403 600 382 603Q357 604 309 581 C 282 568 284 553 314 558Z","M525 767Q547 800 564 810Q570 816 568 825Q567 832 550 848Q534 861 522 862Q510 862 515 848Q521 835 490 781L475 759Q459 737 437 711Q431 705 429 701Q426 695 435 696Q453 696 499 742L525 767Z","M499 742Q554 699 564 696Q568 696 572 702Q578 709 567 732Q560 751 525 767L490 781Q459 794 439 800Q435 801 434 795Q434 791 475 759L499 742Z","M518 611Q537 638 548 646Q554 652 551 659Q550 666 534 680Q519 692 509 692Q499 691 502 679Q508 666 487 626L473 602Q472 601 470 597Q451 569 424 537Q418 533 417 528Q416 522 423 523Q438 526 496 585L518 611Z","M496 585Q544 543 552 540Q556 540 560 546Q566 553 557 577Q548 599 518 611L487 626Q454 641 435 647Q431 650 430 643Q430 636 436 630Q452 618 473 602L496 585Z","M729 538Q771 698 811 759Q821 769 819 780Q813 796 759 825Q744 834 730 830Q679 820 615 813Q596 813 603 801Q613 791 629 784Q641 780 709 791Q716 795 726 791Q736 784 732 759Q728 738 721 713L716 692Q709 664 700 632L693 607Q683 571 670 529 C 661 500 721 509 729 538Z","M721 713Q703 731 645 719Q624 712 607 706Q592 703 609 690Q610 689 716 692 C 745 693 744 693 721 713Z","M700 632Q670 650 591 622Q576 619 593 606Q597 602 609 603Q655 607 693 607 C 723 607 726 618 700 632Z","M194 459Q179 489 171 495Q155 508 153 484Q159 448 105 384Q89 363 113 314Q129 293 143 316Q143 317 189 430 C 198 452 198 452 194 459Z","M189 430Q217 414 245 421Q440 481 716 504Q780 511 801 508Q817 505 816 495Q794 450 770 405L771 404Q778 400 797 410Q855 443 902 451Q941 458 941 469Q938 479 870 537Q851 555 825 553Q779 546 729 538L670 529Q543 514 331 479L294 472Q243 466 194 459 C 164 455 161 441 189 430Z","M517 293Q634 368 668 375Q687 379 682 396Q679 412 618 450Q600 460 578 453Q514 431 414 403Q389 396 327 398Q305 398 312 379Q319 367 338 356Q368 340 399 359Q559 416 575 410Q585 404 582 393Q545 351 502 302 C 482 279 492 277 517 293Z","M546 249Q536 279 517 293L502 302Q495 308 483 311Q462 318 452 312Q439 305 453 292Q480 273 492 241L502 205Q523 90 492 24Q479 -4 442 0Q411 3 384 7Q372 8 378 -2Q382 -9 402 -20Q444 -50 459 -74Q469 -90 486 -88Q499 -87 525 -59Q594 25 556 210L546 249Z","M556 210Q649 217 868 218Q890 218 895 228Q902 241 883 256Q828 298 784 290Q693 271 546 249L492 241Q338 222 158 200Q134 199 152 179Q168 164 187 158Q211 151 229 157Q382 197 502 205L556 210Z"],m:[[383,786,351,789,290,724,283,725],[217,728,261,694,304,509,309,493,324,485],[305,650,309,660,338,669,381,677,398,672],[321,566,325,575,355,583,385,588,405,584],[526,851,539,824,482,742,436,703],[439,795,536,739,558,718,564,704],[512,682,525,657,502,617,464,565,424,530],[438,639,526,585,547,564,553,547],[610,806,634,799,738,809,756,797,772,771,708,562,677,535],[608,698,658,707,700,704,712,710],[592,614,692,627],[162,489,173,455,164,425,128,359,128,320],[202,450,211,441,235,442,380,473,589,506,767,527,832,525,855,501,859,485,787,413,776,410],[323,386,363,373,382,375,567,430,590,431,611,418,621,399,612,385,526,313,524,305,510,306],[456,302,471,299,505,271,522,236,538,154,540,84,533,40,510,-15,486,-37,387,-1],[154,190,210,180,459,220,785,254,820,253,881,235]]},
+'室':{s:["M487 791Q514 769 543 741Q559 728 576 729Q588 730 593 744Q597 760 586 793Q574 823 480 843Q462 847 456 843Q450 839 453 825Q457 812 487 791Z","M285 639Q284 640 284 643Q274 667 262 676Q244 692 241 666Q245 636 202 582Q157 534 173 487Q174 478 179 471Q192 444 214 471Q233 496 249 537Q265 582 278 608 C 288 629 288 629 285 639Z","M278 608Q302 596 338 603Q449 637 696 660Q738 664 753 661Q769 649 767 641Q754 599 739 554L741 553Q748 549 765 561Q819 597 863 609Q899 619 898 628Q897 638 824 692Q802 710 729 697Q591 682 386 651Q335 644 285 639 C 255 636 249 617 278 608Z","M493 487Q680 523 686 526Q695 533 690 541Q684 551 658 560Q630 566 535 537Q405 516 369 513Q336 509 359 493Q389 474 441 478L493 487Z","M511 317Q557 330 623 343Q638 347 648 353 C 675 365 666 375 636 370Q530 354 415 325Q405 321 401 324Q400 327 405 333Q495 426 514 440Q527 447 522 461Q518 470 493 487 C 469 505 441 508 441 478Q447 439 392 377Q367 346 319 319Q306 309 308 299Q312 283 334 262Q343 250 356 260Q392 288 472 307L511 317Z","M648 353Q685 307 696 304Q706 303 713 313Q720 326 717 354Q714 384 628 430Q615 436 608 435Q604 432 602 420Q602 410 636 370L648 353Z","M537 170Q585 179 697 189Q707 188 716 199Q717 209 696 221Q666 243 587 220Q563 216 540 210L486 200Q441 196 321 183Q293 180 314 163Q341 139 386 147Q431 156 486 163L537 170Z","M531 53Q534 117 537 170L540 210Q546 286 542 292Q526 308 511 317 C 486 333 461 335 472 307Q482 289 486 200L486 163Q486 117 486 49 C 486 19 530 23 531 53Z","M524 5Q569 6 612 11Q742 20 846 5Q868 2 875 11Q882 24 871 36Q843 64 799 84Q790 87 649 65Q618 65 531 53L486 49Q386 42 335 35Q277 28 190 28Q177 29 175 17Q174 5 193 -10Q209 -23 240 -35Q250 -39 269 -31Q282 -27 345 -18Q424 -2 524 5Z"],m:[[463,835,544,788,574,748],[252,671,261,641,257,621,205,524,195,474],[288,614,309,622,503,654,764,681,801,662,812,638,754,564,744,561],[361,504,392,498,444,500,636,538,682,535],[508,454,473,449,431,389,391,348,369,309,404,305,602,353,630,358,641,354],[612,429,684,356,699,315],[316,174,350,166,402,170,639,208,706,201],[479,306,508,284,514,245,510,78,493,57],[187,16,220,2,252,-3,478,26,780,48,863,20]]},
+'寸':{s:["M639 526Q756 544 901 531Q925 530 931 538Q938 551 926 564Q895 592 849 612Q833 618 807 608Q740 592 670 581Q654 580 640 576L586 569Q211 521 157 518Q150 519 144 518Q129 517 129 505Q128 492 148 478Q166 465 199 454Q209 450 229 459Q271 474 414 499Q498 515 586 520L639 526Z","M586 520Q587 372 588 117Q587 93 575 84Q565 75 537 82Q506 88 476 93Q439 103 443 92Q444 85 468 70Q547 19 568 -12Q593 -49 611 -48Q627 -49 641 -11Q657 38 653 117Q638 322 639 526L640 576Q640 687 658 753Q677 786 616 810Q579 829 559 821Q540 814 557 789Q581 761 583 724Q584 708 586 569L586 520Z","M342 367Q369 336 397 299Q410 283 428 280Q441 279 448 293Q457 309 451 344Q448 368 416 389Q382 407 345 423Q329 429 320 427Q314 424 314 409Q315 396 342 367Z"],m:[[142,505,155,497,207,488,477,534,834,575,919,547],[562,808,584,796,618,763,612,466,619,91,597,36,552,48,450,92],[325,418,408,347,429,300]]},
+'小':{s:["M499 695Q503 661 501 132Q500 110 488 101Q478 92 448 100Q414 107 383 113Q347 123 351 112Q352 105 375 91Q456 42 479 10Q504 -26 523 -25Q538 -26 552 11Q568 57 564 133Q531 583 572 723Q590 754 532 778Q498 797 477 789Q459 782 475 759Q497 731 499 695Z","M266 475Q223 408 170 349Q160 339 155 320Q148 292 154 273Q158 251 185 261Q213 274 237 308Q273 357 284 404Q297 441 293 470Q289 480 283 484Q273 484 266 475Z","M706 472Q769 411 842 323Q860 299 878 293Q888 292 897 303Q913 318 900 370Q887 431 709 508Q699 515 696 500Q695 484 706 472Z"],m:[[484,773,501,765,533,730,525,545,532,191,528,90,510,54,459,68,358,112],[280,476,254,405,170,274],[709,494,800,425,848,380,866,353,879,311]]},
+'山':{s:["M536 209Q546 407 552 587Q556 633 562 664Q569 691 574 710Q578 723 554 740Q512 762 484 767Q465 771 456 760Q447 751 457 734Q488 688 489 655Q499 444 488 200 C 487 170 534 179 536 209Z","M796 244Q657 232 536 209L488 200Q379 182 284 155Q256 148 263 180Q267 253 272 329Q275 357 263 373Q220 416 190 409Q178 403 188 382Q224 309 215 236Q211 166 182 133Q161 112 170 96Q183 78 203 66Q219 57 230 67Q243 83 283 99Q440 151 606 182Q757 210 789 197 C 819 193 826 247 796 244Z","M789 197Q783 166 774 145Q756 118 785 55Q795 36 809 49Q837 73 846 173Q868 386 890 427Q900 443 889 460Q867 479 831 501Q816 510 802 503Q793 499 796 484Q823 435 796 244L789 197Z"],m:[[472,748,525,700,514,235,493,208],[196,398,217,379,239,340,243,263,233,126,282,127,380,155,575,197,710,218,772,221,788,237],[810,490,826,477,849,433,798,57]]},
+'年':{s:["M383 704Q387 722 447 795Q457 808 443 824Q401 861 373 859Q360 856 362 841Q371 739 255 617Q239 610 206 569Q196 553 213 557Q232 560 258 578Q328 629 374 691L383 704Z","M540 678Q732 714 742 721Q752 730 747 739Q740 752 708 761Q681 767 571 735Q480 714 395 707Q386 706 383 704 C 359 698 359 698 374 691Q425 666 459 665Q469 666 483 668L540 678Z","M569 502Q576 505 723 521Q735 520 744 532Q745 545 722 556Q683 580 599 554Q584 553 570 547L513 535Q455 525 402 520Q371 519 338 513 C 308 508 334 461 363 467Q430 480 513 494L569 502Z","M338 513Q320 523 301 529Q288 533 278 527Q271 521 278 506Q294 481 303 453Q310 426 326 323 C 331 293 371 296 368 326Q362 386 363 467 C 363 497 363 500 338 513Z","M566 300Q683 327 910 303Q935 299 941 308Q950 321 937 335Q864 401 799 379Q699 361 566 347L511 341Q426 337 368 326L326 323Q295 322 272 317Q197 307 86 306Q71 306 70 294Q69 281 88 266Q133 233 171 245Q190 252 265 263Q421 296 510 297L566 300Z","M508 -43Q514 -71 521 -81Q527 -88 535 -86Q550 -77 559 -12Q569 78 567 166Q566 205 566 300L566 347Q566 414 569 502L570 547Q571 580 583 630Q587 649 571 659Q553 672 540 678 C 514 693 469 694 483 668Q483 664 499 640Q512 613 513 535L513 494Q512 425 511 341L510 297Q498 66 508 -43Z"],m:[[375,845,402,804,358,712,298,635,267,604,216,567],[385,693,473,691,689,735,735,733],[345,510,379,494,665,542,733,534],[287,518,318,492,328,470,342,358,346,345,361,332],[83,293,109,281,158,275,451,316,815,347,872,341,929,318],[490,668,536,641,544,630,531,-76]]},
+'弟':{s:["M353 743Q381 719 412 691Q425 679 439 680Q449 680 453 693Q457 706 449 733Q443 752 412 767Q337 794 328 787Q324 783 325 771Q328 761 353 743Z","M614 808Q593 769 534 695Q524 677 542 681Q591 712 617 733Q695 790 701 793Q722 803 711 822Q696 838 669 852Q644 865 632 861Q619 860 624 846Q628 827 614 808Z","M712 522Q737 574 763 591Q784 613 758 631Q734 650 708 666Q695 678 641 659Q577 650 431 617Q365 604 323 600Q310 600 308 592Q305 586 327 574Q343 562 385 572Q445 587 483 595L520 601Q577 611 661 621Q674 622 679 616Q685 603 659 528 C 649 500 698 495 712 522Z","M542 463Q621 476 723 487Q735 488 736 498Q736 505 712 522 C 697 533 689 532 659 528Q656 529 654 528Q596 515 541 500L492 490Q393 471 306 457 C 276 452 288 419 318 422Q325 422 335 424Q396 440 493 455L542 463Z","M542 330Q608 342 697 352Q755 362 779 358Q794 357 800 344Q807 326 765 214Q759 196 741 200Q711 207 674 217Q644 226 665 198Q720 143 731 116Q738 101 753 103Q766 102 784 116Q808 141 832 201Q850 283 886 318Q905 339 892 353Q867 381 828 405Q812 417 752 401Q724 397 542 364L493 355Q405 340 350 325Q317 319 301 320Q292 321 295 338Q307 411 318 422 C 327 444 327 444 306 457Q290 470 268 480Q256 489 246 480Q237 473 247 455Q260 427 251 388Q235 333 219 311Q207 293 219 276Q229 248 244 241Q254 235 279 254Q330 297 450 314L542 330Z","M491 275Q491 109 481 22Q478 -20 503 -53Q516 -68 525 -50Q543 -14 544 59Q543 86 542 330L542 364Q542 413 542 463L541 500Q541 561 544 570Q547 582 538 589Q531 595 520 601 C 495 617 479 625 483 595Q486 588 492 490L493 455Q493 406 493 355L491 275Z","M450 314Q444 295 426 269Q371 194 310 143Q259 97 155 32Q136 20 153 17Q190 14 294 72Q363 121 414 175Q421 184 491 275 C 531 326 472 370 450 314Z"],m:[[332,781,405,738,438,695],[631,852,651,832,660,812,582,727,537,688],[316,591,338,585,374,588,520,620,675,645,699,638,721,608,695,552,667,538],[314,453,336,443,657,504,709,504,727,497],[257,470,276,449,285,424,262,322,262,296,290,294,424,327,768,383,811,379,827,365,845,338,798,205,775,168,760,157,665,209],[489,594,515,571,519,316,514,-48],[486,314,414,213,338,135,274,84,157,24]]},
+'日':{s:["M349 664Q348 665 347 666Q322 687 292 696Q282 697 274 689Q270 682 279 670Q331 531 294 261Q287 216 271 169Q262 141 267 118Q277 81 291 65Q304 50 314 66Q324 79 332 102L339 137Q349 186 350 238Q350 316 351 391L352 420Q353 576 361 626 C 364 652 364 652 349 664Z","M608 120Q641 78 665 39Q675 18 688 19Q707 20 724 59Q745 104 740 157Q728 310 721 593Q720 629 738 654Q748 669 738 681Q716 703 656 730Q635 740 617 729Q512 684 349 664 C 319 660 332 620 361 626Q410 635 590 672Q624 679 640 666Q691 615 658 164Q657 163 657 159Q653 143 640 144 C 621 121 602 128 608 120Z","M351 391Q390 378 433 387Q493 399 554 411Q582 417 587 421Q596 428 591 437Q584 447 556 455Q531 461 450 435Q375 423 352 420 C 322 416 322 400 351 391Z","M332 102Q345 98 361 100Q440 115 608 120 C 638 121 661 122 640 144Q633 153 614 166Q596 178 561 170Q438 146 339 137 C 309 134 303 108 332 102Z"],m:[[284,684,321,646,328,617,332,516,323,261,302,136,302,70],[359,660,374,648,388,650,635,703,668,687,690,665,699,450,699,159,685,105,688,37],[357,413,369,404,398,404,534,432,581,431],[340,106,355,119,432,130,585,147,632,143]]},
+'月':{s:["M398 390Q410 502 412 535L414 566Q417 717 420 735 C 422 758 422 758 405 766Q405 767 404 767Q353 791 337 787Q316 783 334 760Q373 697 357 455Q353 356 304 239Q271 154 155 37Q140 24 137 16Q136 9 148 10Q164 11 186 26Q246 69 281 112Q333 173 363 244Q382 296 394 361L398 390Z","M420 735Q429 735 609 769Q631 773 637 762Q656 713 657 390Q657 128 640 101Q634 94 612 99Q581 105 549 111Q527 117 528 107Q595 55 633 16Q649 -3 665 -9Q675 -13 685 -2Q730 53 725 113Q712 321 709 657Q708 721 723 750Q736 772 723 783Q698 804 658 820Q639 827 621 820Q569 793 536 785Q493 773 405 766 C 375 763 390 730 420 735Z","M412 535Q442 529 533 542Q587 551 594 554Q603 561 599 569Q592 579 566 587Q538 594 511 583Q487 576 462 572Q440 568 414 566 C 384 564 382 540 412 535Z","M394 361Q428 351 561 374Q564 375 568 375Q590 379 594 382Q603 389 599 397Q592 407 566 415Q538 421 511 411Q484 404 456 397Q428 393 398 390 C 368 387 365 368 394 361Z"],m:[[339,773,379,742,387,685,385,504,366,342,341,259,296,169,236,93,184,43,145,17],[415,764,429,752,503,762,634,796,666,780,681,758,687,291,683,93,664,56,632,63,538,104],[417,542,430,550,535,566,588,564],[399,368,413,375,535,394,588,392]]},
+'木':{s:["M524 533Q537 536 755 560Q768 557 779 573Q780 586 754 600Q709 627 634 603Q526 582 524 580L479 572Q404 563 234 546Q200 542 226 521Q265 491 291 494Q309 503 446 521L524 533Z","M524 580Q524 682 544 758Q559 783 532 802Q516 814 485 833Q460 851 439 834Q433 828 440 813Q474 762 476 711Q477 647 479 572L477 458Q474 208 466 155Q442 46 456 5Q460 -7 466 -21Q473 -40 481 -43Q488 -50 495 -41Q504 -37 514 -15Q524 10 523 44Q522 90 523 480L524 580Z","M446 521Q368 337 127 132Q114 119 124 117Q134 113 146 119Q276 176 403 344Q472 450 477 458 C 528 538 464 563 446 521Z","M523 480Q607 338 716 186Q737 159 774 157Q901 147 942 150Q954 151 957 157Q957 164 941 173Q773 251 721 302Q628 398 523 532Q523 533 524 533L524 533 C 506 558 508 506 523 480Z"],m:[[228,534,280,522,695,584,728,584,766,574],[453,825,506,771,498,218,486,-29],[474,519,459,504,447,460,404,389,332,297,244,206,179,154,130,124],[528,513,549,470,641,344,749,220,789,200,951,159]]},
+'東':{s:["M520 680Q572 690 629 699Q675 709 682 715Q692 722 687 732Q680 744 650 752Q619 759 588 748L526 730L469 717Q411 707 343 701Q306 697 332 678Q366 654 444 668Q456 671 471 671L520 680Z","M274 565Q237 571 233 563Q227 556 238 539Q275 476 306 371Q312 338 333 319Q355 297 359 315Q360 322 361 330L358 361Q357 373 353 385Q325 488 316 524 C 309 553 304 561 274 565Z","M641 359Q641 353 644 346Q650 328 664 329Q680 330 689 347Q702 363 729 445Q748 503 790 535Q812 553 794 571Q775 590 719 621Q700 633 632 615Q581 612 517 598L472 591Q444 587 418 581Q307 562 274 565 C 244 565 286 519 316 524Q323 523 330 525Q382 543 473 556L517 563Q659 584 682 573Q692 567 685 533Q660 416 648 387L641 359Z","M517 450Q557 457 594 460Q616 463 609 476Q599 491 573 496Q552 500 517 491L473 480Q430 470 392 461Q376 457 395 442Q404 435 425 438Q449 442 472 444L517 450Z","M517 349Q571 355 641 359 C 671 361 672 369 648 387Q624 411 526 386Q522 386 517 384L470 376Q410 367 358 361 C 328 358 331 331 361 330Q370 329 380 331Q404 337 437 340L517 349Z","M517 330Q517 340 517 349L517 384Q517 415 517 450L517 491Q517 525 517 563L517 598Q517 599 518 602Q518 644 520 680L526 730Q530 761 538 787Q547 803 544 818Q537 828 476 864Q451 883 429 865Q423 861 430 843Q469 786 469 717L471 671Q471 634 472 591L473 556Q473 519 473 480L472 444Q471 411 470 376L470 295Q470 147 444 52Q432 13 461 -57Q468 -76 477 -79Q484 -86 491 -77Q500 -73 511 -50Q521 -23 519 11Q518 51 517 291L517 330Z","M437 340Q431 318 410 288Q352 206 286 150Q231 99 118 28Q102 16 117 14Q127 11 166 27Q227 48 284 89Q404 180 462 282Q466 289 470 295 C 506 353 453 384 437 340Z","M517 291Q614 173 722 63Q747 38 790 34Q868 28 949 42Q970 43 972 49Q975 56 958 64Q751 148 721 167Q663 206 529 319Q522 326 517 330 C 495 350 498 314 517 291Z"],m:[[335,691,362,684,399,684,473,694,615,726,676,726],[241,557,263,543,288,509,346,320],[286,561,329,546,601,594,667,600,704,595,737,553,711,493,664,349],[394,452,447,456,544,476,598,471],[366,338,380,348,639,382],[444,855,471,834,498,801,494,205,479,31,482,-64],[465,338,408,243,328,155,291,122,205,62,121,21],[523,319,533,294,599,230,700,137,759,95,815,76,965,51]]},
+'校':{s:["M329 538Q416 569 417 570Q424 577 420 586Q413 596 385 600Q357 603 331 590L289 573Q199 540 125 527Q92 518 118 505Q158 486 207 503Q240 513 276 523L329 538Z","M326 414Q327 472 329 538L331 590Q332 686 353 750Q362 765 359 778Q352 788 298 821Q276 839 255 823Q251 819 256 803Q289 754 289 704Q289 643 289 573L284 419Q280 335 279 244Q273 165 252 93Q239 51 265 -6Q271 -24 279 -27Q285 -33 292 -25Q299 -21 310 -1Q320 24 319 54Q319 94 325 385L326 414Z","M276 523Q225 376 62 153Q56 143 68 142Q92 142 201 281Q244 339 284 419 C 352 553 286 551 276 523Z","M325 385Q341 369 375 325Q384 313 396 312Q403 311 409 321Q415 331 411 355Q410 371 386 387Q341 414 326 414 C 296 417 304 406 325 385Z","M591 758Q645 709 680 699Q695 698 703 712Q707 725 703 743Q684 785 599 798Q581 802 572 796Q566 795 570 782Q573 770 591 758Z","M497 606Q460 599 487 583Q532 559 587 574Q680 595 777 617Q820 629 827 635Q837 644 831 652Q824 664 794 671Q766 675 671 642Q562 614 497 606Z","M499 473Q484 440 432 360Q426 345 440 350Q483 386 539 441Q552 457 571 468Q587 478 576 492Q563 504 540 513Q519 522 509 518Q499 515 503 504Q507 489 499 473Z","M720 489Q765 459 812 423Q825 413 840 415Q850 416 853 428Q856 443 846 468Q833 507 712 532Q697 533 692 531Q688 527 690 515Q694 505 720 489Z","M655 208Q697 292 705 327Q715 370 726 384Q735 397 727 406Q715 419 689 427Q670 436 650 431Q638 427 645 413Q666 377 646 314Q636 277 619 245L600 215Q572 179 534 151Q482 114 371 77Q355 68 375 66Q538 57 632 172L655 208Z","M632 172Q755 16 818 14Q833 14 933 25Q946 26 959 31Q966 38 954 46Q939 53 822 91Q746 113 655 208L619 245Q591 278 560 316Q541 341 507 347Q497 350 487 343Q483 337 491 330Q498 324 505 319Q527 309 600 215L632 172Z"],m:[[119,517,179,517,367,577,412,578],[267,816,308,776,318,754,310,641,302,250,283,61,284,-14],[283,519,260,422,224,356,178,282,69,150],[329,407,385,353,395,327],[581,788,658,746,682,722],[489,596,512,590,561,592,774,644,821,645],[516,507,534,479,441,359],[697,525,806,468,838,430],[653,421,686,395,688,382,665,289,623,203,576,151,518,112,450,86,382,75],[495,338,534,319,655,175,716,115,767,76,810,54,950,36]]},
+'母':{s:["M383 734Q331 780 318 769Q311 759 310 746Q346 674 296 470Q295 466 293 461L284 426Q242 282 195 236Q174 215 217 167Q226 157 242 165Q315 201 494 201Q602 204 630 195L690 185Q763 172 831 147Q855 137 866 141Q879 145 871 166Q862 188 808 229Q789 245 699 237L639 237Q455 243 291 233Q269 230 276 249Q307 352 332 433L341 465Q369 568 381 627Q387 669 396 696 C 402 719 402 719 383 734Z","M723 506Q727 671 740 705Q755 729 743 737Q736 750 676 788Q660 801 611 783Q529 762 383 734 C 354 728 367 689 396 696Q408 697 423 702Q618 756 646 731Q662 724 663 692Q664 586 664 498L662 456Q659 333 639 237L630 195Q596 78 572 59Q565 55 531 67Q506 77 490 83Q477 86 480 73Q483 64 502 50Q544 7 563 -26Q594 -56 614 -36Q657 19 690 185L699 237Q708 276 721 457L723 506Z","M463 611Q485 589 510 562Q522 549 537 548Q547 548 553 561Q557 574 551 604Q547 622 519 636Q458 663 440 659Q436 655 436 643Q439 633 463 611Z","M721 457Q785 458 857 455Q947 452 954 461Q960 474 943 489Q885 537 810 519Q770 513 723 506L664 498Q589 491 500 480Q424 473 341 465L293 461Q187 454 74 443Q52 442 68 423Q83 407 101 401Q123 394 141 399Q210 415 284 426L332 433Q378 440 428 444Q525 456 662 456L721 457Z","M429 361Q477 301 507 288Q522 284 531 297Q538 309 536 325Q524 374 444 397L443 398Q427 402 418 400Q411 399 413 387Q414 375 429 361Z"],m:[[325,759,357,704,347,591,306,420,236,214,285,207,406,219,532,221,735,209,796,196,860,155],[394,731,411,719,546,750,643,764,668,756,701,720,686,358,669,235,637,104,611,43,592,16,561,28,490,73],[444,653,512,606,536,566],[71,433,123,422,383,456,838,490,897,484,947,468],[424,390,491,339,513,307]]},
+'民':{s:["M628 625Q661 703 695 721Q714 742 698 762Q680 777 623 806Q604 815 579 806Q470 758 283 725 C 253 720 273 681 302 690Q306 691 314 694Q435 721 551 748Q581 757 593 744Q602 735 598 717Q586 672 573 634 C 564 606 616 598 628 625Z","M509 572Q566 582 639 589Q651 590 652 601Q652 608 628 625L573 634Q567 634 564 632Q414 592 293 574 C 263 569 264 549 293 541Q305 535 326 539Q375 552 456 564L509 572Z","M283 725Q261 744 242 753Q220 762 210 755Q198 748 208 730Q268 604 223 214Q219 157 171 101Q158 83 165 57Q177 26 191 12Q206 2 221 21Q243 57 439 197Q461 210 468 221Q472 231 461 233Q443 233 294 158Q276 151 276 167Q294 375 293 541L293 574Q293 580 293 585Q292 640 301 686Q301 689 302 690 C 305 708 305 708 283 725Z","M582 391Q631 406 687 420Q745 436 752 445Q762 455 756 463Q747 476 716 482Q683 486 652 472Q610 456 568 439L521 423Q517 423 516 422Q437 400 344 385Q305 376 335 359Q378 335 440 354Q488 367 538 379L582 391Z","M538 379Q616 193 752 69Q797 30 851 1Q914 -30 950 -32Q978 -28 969 8Q956 42 945 203Q944 216 938 217Q932 217 930 203Q918 164 909 126Q896 77 879 76Q857 75 807 108Q755 141 706 198Q621 294 582 391L568 439Q556 488 562 527Q565 549 520 568Q514 571 509 572 C 481 584 438 588 456 564Q457 561 459 556Q487 531 501 481Q510 451 521 423L538 379Z"],m:[[293,723,304,714,318,713,571,776,607,776,645,741,610,657,581,639],[301,569,311,558,327,559,574,608,618,607,642,600],[219,742,250,710,263,684,268,463,258,278,245,169,249,117,304,131,460,224],[336,373,397,369,539,403,679,450,745,456],[463,562,506,543,525,524,534,467,561,380,621,267,684,181,778,88,863,38,909,32,926,87,940,209]]},
+'水':{s:["M535 506Q538 699 560 762Q578 793 520 817Q486 836 465 830Q447 823 463 799Q485 771 486 736Q490 697 478 121Q477 97 463 88Q454 81 432 88Q407 94 382 99Q348 111 351 100Q352 93 373 78Q440 24 457 -5Q476 -41 493 -42Q508 -43 524 -7Q543 41 541 117Q531 294 534 470L535 506Z","M154 501Q141 501 139 492Q138 485 153 477Q199 452 227 461Q333 489 343 489Q359 486 347 456Q296 326 249 262Q201 190 114 119Q99 106 110 103Q120 102 141 113Q217 153 281 224Q342 288 419 454Q429 478 441 489Q456 501 447 511Q437 524 399 537Q378 549 336 530Q270 509 154 501Z","M590 446Q630 476 766 584Q787 603 814 615Q838 627 825 647Q809 666 779 681Q752 696 738 692Q723 691 729 675Q735 639 659 553Q620 508 577 459 C 557 436 566 428 590 446Z","M577 459Q555 484 535 506 C 515 528 516 494 534 470Q756 161 817 160Q898 169 967 175Q995 178 996 185Q997 192 964 205Q810 253 753 295Q690 346 590 446L577 459Z"],m:[[473,814,500,795,521,770,508,455,507,91,485,42,442,56,371,91,369,98,358,98],[147,491,209,482,354,512,381,505,392,495,384,459,353,387,280,261,187,160,113,110],[737,682,750,671,766,637,721,583,591,461,590,452],[539,500,550,465,618,387,729,271,782,229,820,207,990,185]]},
+'火':{s:["M226 483Q254 443 285 393Q295 375 312 372Q324 369 333 381Q342 396 342 430Q342 472 235 536Q220 543 213 543Q206 540 204 526Q205 513 226 483Z","M690 568Q677 547 584 441Q571 422 592 425Q638 449 738 513Q762 532 791 543Q816 553 805 575Q789 597 759 615Q731 633 715 629Q700 628 704 612Q708 590 690 568Z","M511 382Q520 439 529 618Q530 669 548 728Q554 741 543 750Q521 769 479 785Q454 795 434 789Q410 779 430 759Q464 725 465 690Q469 500 448 374Q427 209 284 106Q244 81 186 49Q170 43 167 39Q160 32 179 29Q197 28 258 48Q301 61 365 101Q414 131 442 172Q484 232 504 341L511 382Z","M504 341Q597 175 715 40Q740 9 767 9Q843 13 911 17Q939 18 940 25Q941 32 910 48Q753 117 709 157Q592 268 511 382 C 493 406 489 367 504 341Z"],m:[[216,534,299,440,316,391],[714,618,736,593,744,571,696,522,587,433],[436,773,475,753,497,733,503,713,488,443,470,321,456,275,418,195,368,138,279,78,174,36],[513,375,521,341,606,223,689,127,745,76,768,60,934,25]]},
+'父':{s:["M312 721Q316 640 162 492Q153 488 164 484Q243 484 383 656Q390 665 394 668Q403 672 401 684Q400 694 387 707Q354 740 319 736Q309 735 312 721Z","M588 741Q661 698 748 631Q770 612 788 610Q798 610 805 623Q815 641 792 686Q770 743 583 776Q573 780 572 765Q573 750 588 741Z","M531 253Q577 332 601 441Q608 477 617 498Q624 511 615 522Q594 546 570 558Q546 573 535 570Q525 566 526 552Q553 429 489 298L465 251Q393 155 256 105Q205 89 133 71Q121 70 116 65Q109 61 119 55Q126 52 141 53Q265 60 355 100Q436 131 500 209L531 253Z","M500 209Q567 131 679 32Q716 -2 776 5Q855 12 913 17Q932 18 949 26Q959 36 942 46Q921 56 759 101Q654 129 531 253L489 298Q435 355 381 424Q353 461 304 471Q288 474 276 465Q269 456 281 446Q338 407 378 359Q423 305 465 251L500 209Z"],m:[[320,726,342,703,350,683,333,651,296,600,239,539,168,489],[586,762,734,691,765,663,786,629],[539,558,574,504,563,422,522,297,465,208,388,143,315,106,230,79,123,62],[286,458,320,445,350,423,562,183,644,112,702,72,753,52,941,34]]},
+'王':{s:["M528 646Q601 659 678 670Q739 680 749 689Q761 698 755 709Q748 725 711 735Q672 745 579 716Q444 685 307 677Q261 673 293 649Q341 621 432 632Q450 635 472 638L528 646Z","M539 380Q707 411 713 416Q723 425 719 434Q712 447 679 458Q645 465 610 453Q576 443 541 434L490 423Q421 410 341 405Q299 401 328 380Q373 355 455 367Q471 370 489 372L539 380Z","M533 159Q536 277 539 380L541 434Q542 548 548 600Q557 627 529 645L528 646 C 505 665 463 666 472 638Q487 602 491 498Q490 468 490 423L489 372Q488 285 485 154 C 484 124 532 129 533 159Z","M520 106Q574 107 626 112Q776 124 907 105Q934 102 940 111Q950 127 936 140Q903 171 855 195Q839 202 810 193Q740 180 668 171Q587 165 533 159L485 154Q361 145 299 138Q229 128 125 130Q109 130 108 117Q107 104 127 87Q146 72 181 58Q193 54 213 62Q231 68 304 78Q401 97 520 106Z"],m:[[296,665,329,657,385,655,675,704,742,702],[331,394,364,387,424,387,548,407,647,431,706,428],[479,636,515,610,516,575,510,185,490,163],[122,116,158,100,196,94,403,122,837,156,926,123]]},
+'生':{s:["M324 495Q328 502 332 509Q357 558 382 599Q392 615 375 630Q318 663 296 657Q283 654 287 638Q308 536 204 397Q200 396 160 342Q153 324 169 330Q188 334 213 357Q273 409 311 471L324 495Z","M556 479Q748 518 754 521Q764 530 759 539Q752 552 721 561Q688 568 656 557Q607 544 558 529L500 516Q418 501 324 495 C 294 493 284 484 311 471L312 471Q351 447 432 459Q463 465 499 469L556 479Z","M549 276Q702 307 710 313Q720 322 715 331Q708 344 676 353Q649 359 551 329L495 315Q428 303 347 295Q308 291 336 271Q378 244 484 265Q488 266 495 267L549 276Z","M543 92Q546 186 549 276L551 329Q552 405 556 479L558 529Q567 718 580 760Q593 782 578 797Q538 828 506 838Q490 842 473 829Q467 820 474 808Q507 751 504 688Q503 604 500 516L499 469Q498 394 495 315L495 267Q492 179 492 86 C 492 56 542 62 543 92Z","M492 86Q330 70 144 51Q119 48 137 27Q173 -9 220 1Q520 73 900 54Q901 54 904 54Q929 53 935 63Q942 78 922 95Q856 144 785 129Q688 113 543 92L492 86Z"],m:[[299,644,334,603,309,529,279,467,247,420,219,385,171,341],[320,474,402,478,502,492,690,536,750,531],[338,285,366,278,417,279,558,302,664,328,703,325],[486,820,518,796,535,776,538,759,518,115,498,94],[141,39,198,27,411,58,811,95,886,85,923,70]]},
+'白':{s:["M330 536Q397 597 434 638Q518 732 544 746Q569 764 552 783Q531 802 496 815Q463 828 448 821Q432 817 440 801Q452 762 384 658Q306 538 305 535 C 289 509 308 516 330 536Z","M227 531Q209 541 190 547Q183 550 176 543Q167 537 178 524Q236 419 241 179Q242 113 281 79Q282 78 287 75Q306 69 309 104Q309 111 309 117L304 156Q303 169 298 184Q292 239 283 310Q282 311 282 312L279 342Q272 421 270 485 C 269 510 254 517 227 531Z","M640 134Q650 106 675 51Q684 32 695 32Q713 35 724 63Q772 150 780 268Q792 341 801 428Q808 483 834 518Q855 540 840 556Q815 581 761 606Q740 618 702 605Q555 557 330 536L305 535Q268 535 227 531 C 197 529 241 478 270 485Q303 497 669 549Q712 556 729 536Q739 515 739 494Q732 337 696 185Q692 158 681 156Q677 155 664 160 C 635 153 633 152 640 134Z","M282 312Q297 305 324 308Q490 330 613 342Q643 345 633 362Q620 381 588 389Q558 396 505 384Q382 360 279 342 C 249 337 253 321 282 312Z","M309 117Q315 116 324 117Q426 133 640 134 C 670 134 685 139 664 160Q655 170 643 179Q625 192 590 186Q431 162 304 156 C 274 154 279 118 309 117Z"],m:[[449,809,469,796,487,761,423,665,330,549,312,536],[184,534,210,513,236,471,271,169,292,88],[235,528,277,511,336,517,550,547,719,578,742,574,766,557,784,536,757,334,727,160,697,109,695,47],[287,335,300,327,315,327,570,365,620,355],[311,150,324,139,337,138,585,160,655,161]]},
+'萬':{s:["M436 747Q433 778 432 801Q433 820 413 826Q373 844 351 836Q333 826 349 808Q376 780 386 746Q386 745 387 742L398 706Q414 664 423 655Q436 645 441 657Q447 678 440 716L436 747Z","M440 716Q459 722 483 726Q498 727 515 736Q522 740 520 747Q519 753 506 756Q475 753 436 747L387 742Q326 736 253 726Q210 729 186 727Q176 728 174 724Q171 717 177 707Q190 692 217 680Q233 670 250 674Q322 690 398 706L440 716Z","M647 775Q654 791 668 812Q681 825 671 836Q661 852 628 868Q613 877 597 868Q587 864 594 852Q603 833 592 768L587 742Q569 664 570 661Q571 649 585 656Q598 668 628 730L647 775Z","M628 730Q644 729 666 733Q745 748 839 735Q854 734 858 742Q862 752 851 767Q809 806 718 786Q685 782 647 775L592 768Q588 769 582 768Q555 765 574 751Q581 747 587 742L628 730Z","M320 602Q304 609 288 613Q281 616 276 610Q269 604 279 593Q312 545 326 434Q330 374 368 348Q369 348 371 347Q387 343 387 368L386 394Q383 416 375 441Q360 547 360 564Q360 568 358 573 C 355 588 348 591 320 602Z","M610 397Q625 373 640 365Q650 356 667 378Q683 400 717 529Q727 560 752 584Q765 597 755 611Q739 629 697 657Q679 666 604 649Q550 643 441 623Q374 610 320 602 C 290 597 329 565 358 573Q397 585 453 594L499 602Q631 630 657 612Q670 602 665 582Q635 438 615 428 C 601 409 601 409 610 397Z","M524 489Q566 498 603 503Q625 507 617 520Q607 535 581 539Q559 540 525 531L473 515Q433 505 399 493Q383 489 403 475Q413 468 433 472Q452 476 474 480L524 489Z","M522 386Q567 393 610 397 C 640 400 643 418 615 428Q591 440 522 420L474 411Q428 404 386 394 C 357 387 357 367 387 368Q393 368 400 369Q437 376 474 379L522 386Z","M221 259Q211 269 188 274Q182 277 177 270Q173 263 177 249Q207 198 195 54Q191 29 201 7Q214 -15 232 -28Q247 -38 249 -25Q256 -21 259 2Q263 18 259 72Q259 93 258 212 C 258 231 245 241 221 259Z","M520 268Q626 283 754 285Q778 284 787 270Q796 260 790 244Q786 78 773 54Q769 44 754 47Q727 51 699 54Q665 58 689 36Q755 -24 781 -66Q791 -82 806 -71Q822 -55 833 -29Q846 -1 856 155Q859 213 879 241Q897 265 890 275Q881 290 823 329Q801 347 783 340Q749 327 687 319Q593 312 520 302L474 296Q389 289 344 277Q274 264 221 259 C 191 256 229 204 258 212Q268 213 276 216Q343 238 466 261Q469 262 474 262L520 268Z","M519 170Q519 222 520 268L520 302Q520 345 522 386L522 420Q523 456 524 489L525 531Q529 576 524 583Q512 593 499 602 C 475 620 438 620 453 594Q459 584 465 572Q471 554 473 515L474 480Q474 455 474 411L474 379Q474 343 474 296L474 262Q474 217 474 162 C 474 132 519 140 519 170Z","M605 186Q562 179 519 170L474 162Q428 156 380 147Q362 143 335 147Q322 147 320 138Q316 125 324 117Q343 99 373 78Q383 74 395 81Q425 100 589 155Q604 159 618 166 C 645 179 635 191 605 186Z","M618 166Q648 114 664 109Q674 108 681 117Q688 129 689 157Q686 188 611 232Q599 239 592 239Q588 236 585 225Q586 215 604 189Q604 188 605 186L618 166Z"],m:[[357,822,380,812,400,793,432,660],[182,719,209,707,252,700,511,744],[600,859,615,852,634,823,579,662],[576,760,634,751,732,765,793,766,825,760,847,748],[284,603,307,586,330,557,355,412,374,360],[328,599,360,591,619,638,659,637,684,628,708,598,686,539,667,461,644,405,648,383],[401,484,565,518,607,514],[393,375,400,383,424,389,594,414,608,421],[186,263,208,239,227,198,227,34,240,-24],[228,255,268,240,449,277,570,292,794,308,813,295,838,259,828,230,818,99,805,29,791,4,757,14,690,47],[461,592,497,567,499,543,497,189,480,170],[332,134,382,113,586,170,609,167],[594,229,655,163,667,122]]},
+'西':{s:["M581 694Q621 701 666 706Q738 719 749 728Q759 737 755 746Q748 761 715 770Q687 779 602 756Q437 713 262 705Q220 701 248 680Q294 650 358 661Q359 662 362 661L409 668Q460 677 515 684L581 694Z","M215 475Q187 494 155 502Q148 505 141 498Q131 491 143 477Q197 393 204 189Q205 120 248 84Q251 81 255 79Q277 73 278 110Q278 111 278 112L274 157Q246 346 241 434 C 239 460 239 460 215 475Z","M666 141Q705 75 712 43Q721 27 731 28Q747 29 763 54Q791 91 804 137Q825 198 858 421Q864 461 878 482Q899 504 884 511Q868 530 827 549Q802 567 775 557Q741 547 652 539Q612 536 574 531L533 526Q476 520 429 511L381 503Q377 503 375 502Q293 486 215 475 C 185 471 212 425 241 434Q241 435 245 436Q311 457 377 463L423 470Q480 480 532 485L571 490Q778 514 791 497Q798 490 794 447Q779 270 745 172Q738 147 716 151Q709 155 700 160 C 671 166 651 167 666 141Z","M362 661Q384 625 381 503L377 463Q368 385 316 275Q312 269 311 264Q310 254 318 257Q348 263 395 367Q396 370 398 373Q413 413 422 462Q422 466 423 470L429 511Q432 539 433 567Q433 600 437 628Q444 641 436 651Q426 661 409 668 C 382 681 349 688 362 661Z","M574 531Q580 592 599 662Q603 678 594 687Q588 691 581 694 C 555 709 500 710 515 684Q536 663 533 537Q533 533 533 526L532 485Q522 346 566 313Q588 294 683 306Q717 310 728 327Q737 339 729 346Q720 353 629 350Q566 347 571 479Q570 485 571 490L574 531Z","M278 112Q282 112 291 113Q412 135 666 141 C 696 142 716 142 700 160Q691 172 666 192Q647 205 607 198Q421 167 274 157 C 244 155 248 110 278 112Z"],m:[[252,694,276,686,346,684,682,741,741,741],[149,488,185,461,206,423,238,169,260,93],[223,473,250,459,481,500,777,530,799,529,820,515,836,492,835,483,797,244,769,140,739,105,692,135,677,135],[370,660,405,631,402,480,375,363,335,284,319,265],[522,685,562,656,549,449,558,377,572,347,587,333,630,325,687,328,723,338],[284,120,297,136,371,146,620,170,692,161]]},
+'軍':{s:["M316 796Q304 820 293 827Q274 842 272 814Q278 769 223 709Q204 685 233 630Q252 606 267 633Q283 658 294 694Q307 739 317 764 C 324 781 324 781 316 796Z","M317 764Q330 760 372 765Q516 804 708 817Q730 818 740 816Q750 809 747 803Q747 802 707 731Q697 716 703 712Q712 708 730 718Q790 751 836 759Q875 765 875 776Q874 786 806 841Q782 863 718 851Q586 835 407 809Q361 802 316 796 C 286 792 287 767 317 764Z","M542 645Q659 667 666 672Q673 679 670 686Q664 696 640 703Q616 709 548 689L489 675Q438 668 385 663Q354 659 375 644Q405 628 479 636Q483 637 491 637L542 645Z","M339 545Q329 551 292 556Q280 557 277 553Q271 546 280 531Q313 471 336 372Q340 341 359 323Q378 301 383 318L385 330L383 359Q382 371 379 383Q357 477 351 512 C 346 542 346 542 339 545Z","M634 360Q649 335 664 325Q674 316 692 337Q707 356 745 472Q755 503 781 526Q794 538 784 553Q771 571 729 600Q708 612 643 594Q613 593 541 578L490 570Q469 569 448 564Q390 554 339 545 C 309 540 322 504 351 512Q408 528 490 542L541 551Q668 573 689 557Q701 547 695 529Q667 418 656 402Q652 393 641 390 C 623 376 623 376 634 360Z","M540 454Q574 463 608 467Q630 471 621 484Q611 499 585 502Q567 503 541 496L490 479Q456 469 426 457Q410 453 431 439Q440 433 458 437Q474 441 490 443L540 454Z","M540 349Q589 356 634 360 C 664 363 668 376 641 390Q613 408 548 391Q544 391 540 388L488 378Q433 368 383 359 C 353 354 355 329 385 330Q394 330 404 331Q447 338 487 342L540 349Z","M542 220Q617 226 919 227Q941 226 947 236Q953 249 935 264Q868 315 821 297Q712 281 541 255L485 249Q319 231 130 212Q108 211 124 191Q140 175 159 169Q183 162 200 167Q324 198 462 212Q472 213 485 214L542 220Z","M485 214Q485 -36 497 -58Q498 -61 501 -65Q507 -72 515 -70Q533 -58 537 2Q552 149 542 220L541 255Q540 294 540 349L540 388Q540 419 540 454L541 496Q541 523 541 551L541 578Q541 611 542 645L548 689Q551 708 555 724Q558 743 543 752Q509 774 492 778Q479 782 462 773Q453 764 461 754Q486 697 489 675L491 637Q491 606 490 570L490 542Q490 512 490 479L490 443Q489 412 488 378L487 342Q486 299 485 249L485 214Z"],m:[[283,820,294,790,291,768,251,681,249,637],[322,770,334,780,536,814,731,836,763,829,781,815,792,795,709,717],[378,655,417,649,467,652,615,682,660,681],[286,546,313,525,323,508,371,323],[347,542,361,532,657,582,692,582,714,574,738,541,694,413,670,366,672,344],[428,448,579,483,612,477],[389,338,407,348,632,384],[127,201,182,191,572,242,843,264,896,256,934,243],[470,763,496,747,515,725,518,685,511,-59]]},
+'金':{s:["M527 731Q536 744 543 749Q553 755 551 767Q550 779 536 794Q499 831 460 827Q450 826 452 810Q462 702 278 504Q133 378 54 318Q44 312 56 308Q134 318 278 435Q378 525 510 708L527 731Z","M510 708Q613 572 746 429Q768 407 804 409Q925 416 963 424Q975 428 976 433Q976 439 960 447Q798 498 739 542Q642 620 527 731 C 505 752 492 732 510 708Z","M507 430Q651 463 654 465Q663 472 659 480Q652 492 624 500Q599 506 498 475Q410 454 334 448Q298 442 323 426Q362 402 419 415Q435 419 455 420L507 430Z","M526 270Q668 300 674 303Q683 310 679 320Q672 332 642 341Q618 347 527 321L470 307Q382 291 303 285Q266 281 292 262Q334 235 391 248Q428 255 470 261L526 270Z","M517 58Q521 175 526 270L527 321Q530 408 531 408Q530 411 529 411Q519 421 507 430 C 484 449 442 447 455 420Q470 401 470 307L470 261Q469 185 469 52 C 469 22 516 28 517 58Z","M283 157Q305 133 329 104Q342 89 359 88Q369 87 377 101Q383 116 377 148Q370 179 283 208Q267 212 260 211Q254 207 255 194Q258 182 283 157Z","M644 225Q623 198 556 134Q544 118 562 120Q583 129 680 177Q699 190 724 197Q746 204 738 223Q728 242 703 258Q681 274 669 273Q656 273 659 260Q660 241 644 225Z","M469 52Q336 39 179 24Q155 23 172 3Q187 -13 207 -19Q229 -26 248 -22Q489 35 803 15Q803 16 806 15Q828 14 834 24Q841 37 823 52Q766 97 724 89Q645 76 517 58L469 52Z"],m:[[463,815,488,786,495,764,446,673,357,553,292,482,237,433,135,357,60,314],[529,721,529,708,608,621,722,509,774,467,790,458,836,449,967,432],[326,438,346,432,393,432,596,476,649,475],[295,275,317,268,365,267,535,295,630,318,669,312],[462,420,497,394,500,335,494,84,474,61],[264,203,341,143,358,108],[667,264,688,224,562,128],[175,14,230,2,435,30,734,54,770,49,821,31]]},
+'長':{s:["M428 767Q446 764 517 774Q682 813 687 817Q696 824 691 833Q684 843 656 850Q626 856 597 843Q558 830 515 818Q469 806 413 800 C 383 797 398 769 428 767Z","M424 412Q423 475 422 527L421 554Q421 599 421 645L421 669Q424 739 428 759L428 767 C 430 788 430 788 413 800Q389 819 361 830Q345 837 335 830Q326 823 333 806Q358 751 368 694Q374 636 379 403 C 380 373 424 382 424 412Z","M421 645Q463 632 504 641Q558 653 614 664Q639 671 643 674Q652 681 647 689Q640 699 614 706Q586 710 559 700Q531 690 499 682Q465 675 424 670Q421 670 421 669 C 392 663 392 653 421 645Z","M422 527Q464 515 500 524Q558 536 619 548Q647 554 651 558Q658 565 655 573Q648 583 622 590Q594 596 567 585Q536 575 502 566Q465 559 421 554 C 391 551 393 535 422 527Z","M454 379Q535 394 827 411Q848 412 853 421Q859 434 840 448Q779 491 714 470Q609 448 424 412L379 403Q264 385 137 364Q115 361 131 343Q168 313 207 325Q244 337 287 347L345 360Q369 367 399 371L454 379Z","M287 347Q314 307 314 197Q314 130 300 88Q293 52 257 10Q245 -2 253 -23Q262 -51 276 -64Q289 -74 302 -59Q354 5 511 134Q527 144 528 154Q529 160 524 159Q511 158 376 72Q366 66 361 70Q357 73 357 85Q363 301 367 324Q371 342 359 351Q355 355 345 360 C 320 377 273 374 287 347Z","M621 241Q715 319 730 325Q749 337 738 352Q725 368 698 379Q674 389 663 386Q651 383 656 371Q662 344 600 257 C 583 233 598 222 621 241Z","M600 257Q537 308 454 379 C 431 398 372 383 399 371Q442 355 472 318Q623 162 744 56Q766 35 797 40Q909 59 952 72Q971 76 977 86Q981 95 968 97Q782 131 672 205Q648 221 621 241L600 257Z"],m:[[421,797,451,785,527,796,624,826,681,827],[345,819,384,777,396,702,401,430,384,415],[425,663,445,655,481,658,594,684,636,684],[429,548,438,539,463,539,601,569,644,568],[135,353,184,346,437,397,731,440,778,442,841,427],[295,346,333,324,338,176,328,86,330,36,385,53,523,154],[664,377,690,343,623,262,613,263],[406,369,451,362,653,180,783,92,967,87]]},
+'門':{s:["M270 716Q246 740 213 748Q203 751 196 741Q192 735 200 724Q260 577 214 260Q205 202 186 142Q176 114 181 92Q191 55 203 41Q216 26 226 41Q263 80 264 255Q264 357 267 461L268 494Q268 534 271 565L272 599Q276 663 281 689 C 283 705 283 705 270 716Z","M386 477Q387 473 394 464Q416 433 436 460Q448 476 455 535Q458 649 485 690Q498 708 484 723Q465 738 435 754Q419 760 404 753Q341 729 270 716 C 241 710 253 680 281 689Q378 722 404 708Q413 702 412 672Q408 587 402 516Q401 506 397 499 C 388 473 384 481 386 477Z","M271 565Q320 575 357 580Q379 586 369 597Q359 610 334 613Q312 614 274 601L272 599 C 248 580 242 559 271 565Z","M267 461Q271 461 276 462Q310 471 386 477 C 416 479 418 480 397 499Q390 506 375 514Q360 521 332 513Q298 503 268 494 C 239 485 237 459 267 461Z","M631 767Q609 786 584 795Q578 798 573 794Q566 790 573 777Q603 714 594 569Q591 506 621 481Q622 481 624 479Q640 472 644 501Q644 504 644 506L645 540Q642 567 642 620L642 646Q642 695 644 735 C 645 756 645 756 631 767Z","M810 517Q816 115 795 78Q789 72 770 77Q743 83 716 90Q695 97 696 87Q754 35 785 -3Q798 -24 815 -28Q825 -32 833 -22Q876 27 875 86Q862 303 860 655Q859 716 873 744Q886 763 873 775Q851 794 811 810Q790 819 734 790Q698 778 631 767 C 601 762 615 729 644 735Q692 744 764 762Q783 766 791 755Q804 742 805 696Q808 618 809 545L810 517Z","M642 620Q643 620 648 620Q708 627 751 633Q773 637 765 649Q755 662 731 666Q698 670 642 646 C 614 634 612 620 642 620Z","M644 506Q651 505 663 506Q709 515 810 517 C 840 518 834 528 809 545Q803 549 794 556Q778 566 747 559Q692 546 645 540 C 615 536 614 508 644 506Z"],m:[[207,736,243,696,252,611,251,453,239,243,215,101,215,46],[279,712,291,704,342,721,418,731,448,702,426,507,416,478,400,477],[278,570,284,582,304,591,329,595,361,590],[271,466,284,481,345,495,388,497],[579,786,610,752,616,729,618,559,629,490],[641,765,654,754,787,786,807,780,835,752,835,69,815,35,785,43,706,84],[645,627,658,637,714,647,755,643],[648,512,660,523,760,539,792,535,800,524]]},
+'靑':{s:["M543 709Q704 745 709 748Q716 754 714 760L713 762Q706 776 678 782Q655 789 547 756L486 741Q419 729 343 723Q342 723 341 722Q307 714 332 701Q363 679 412 685L488 698L543 709Z","M536 595Q568 604 674 615L678 615Q684 617 692 626Q692 632 684 641Q652 670 543 635Q539 635 538 634L490 623L349 604Q331 600 336 592Q363 565 402 570Q408 570 414 572Q455 582 490 587L536 595Z","M490 587Q490 515 490 504 C 490 474 530 481 531 511Q532 557 536 595L538 634Q539 668 543 709L547 756Q547 765 561 815Q563 825 544 840Q498 864 474 862Q456 860 459 845L463 835Q480 808 486 741L488 698Q490 666 490 623L490 587Z","M490 504Q377 490 300 474Q254 466 214 462L125 455Q116 453 116 443L116 439Q121 421 151 409Q186 394 208 402Q334 454 666 492Q779 506 919 494Q927 494 932 494Q956 498 949 517Q946 521 939 527Q911 551 870 568Q861 570 847 568L832 564Q792 549 702 536Q547 514 531 511L490 504Z","M414 202Q418 241 417 284Q420 333 425 355 C 429 375 429 375 418 385Q394 410 363 409Q352 405 353 396Q396 291 345 119Q321 59 321 55Q333 -11 355 -11Q370 -11 392 74Q412 145 412 174L414 202Z","M425 355L429 355L500 370L549 378Q594 386 606 382Q618 379 625 367Q635 345 639 242L641 196Q642 134 641 94L639 55Q639 37 632 29Q623 19 589 23L555 25Q547 27 545 24Q543 14 563 4Q579 -10 594 -24L627 -57Q641 -71 655 -69Q669 -65 687 -29Q715 27 710 77L692 300Q688 339 704 373Q711 390 710 396Q700 417 641 437Q622 446 568 422L418 385 C 389 378 395 350 425 355Z","M500 370L500 215 C 500 185 537 193 539 223L549 378 C 551 408 500 400 500 370Z","M500 215Q454 206 414 202 C 384 199 382 177 412 174Q454 169 523 178L641 196 C 671 201 669 246 639 242L590 235L539 223L500 215Z"],m:[[334,713,402,706,553,732,638,756,681,762,705,757],[346,594,405,591,633,633,684,627],[472,849,517,807,511,528,497,507],[131,441,196,430,483,487,856,534,934,510],[365,397,392,370,396,295,383,152,353,53,354,-1],[427,363,437,373,606,409,639,403,664,381,662,319,675,98,672,33,663,8,646,-14,550,20],[544,371,523,347,521,248,505,223],[419,181,429,188,493,193,617,215,634,234]]},
+'韓':{s:["M337 653Q467 693 469 694Q476 701 472 709Q465 719 437 725Q409 729 348 702L299 685Q250 672 194 663Q161 656 186 641Q228 622 290 641L292 641L337 653Z","M313 557Q325 606 337 653L348 702Q352 745 381 801Q385 810 371 825Q344 846 325 853Q312 857 304 852Q297 846 301 833Q314 805 312 788Q308 739 299 685L292 641Q285 598 274 548 C 268 519 306 528 313 557Z","M186 527Q176 533 146 535Q136 538 132 533Q128 527 136 513Q166 455 187 361Q191 333 209 314Q225 295 230 309Q231 313 232 320L231 344Q228 368 217 409L212 431Q202 477 199 497 C 195 523 195 523 186 527Z","M359 342Q372 321 385 314Q394 307 408 325Q421 347 454 467Q461 494 482 516Q494 526 484 539Q471 554 434 577Q421 583 352 566Q346 566 313 557L274 548Q262 547 253 543Q217 534 186 527 C 157 520 170 488 199 497Q262 518 371 540Q393 544 403 537Q415 527 411 509Q381 382 366 369 C 354 349 354 349 359 342Z","M217 409Q221 409 228 410Q300 426 353 438Q374 442 365 453Q355 466 332 468Q316 469 212 431 C 184 421 187 407 217 409Z","M312 334Q334 338 359 342 C 389 347 394 358 366 369Q359 372 351 373Q321 376 231 344 C 203 334 202 320 232 320Q233 320 237 320Q256 324 276 327L312 334Z","M325 219Q377 232 443 245Q458 248 458 255Q459 267 442 274Q412 284 326 256L279 243Q159 210 66 195Q56 194 52 186Q51 176 64 167Q100 145 137 158Q218 188 277 206L325 219Z","M277 206Q277 106 263 70Q251 42 283 -9Q293 -27 299 -30Q309 -31 314 -20Q323 1 323 111Q323 168 325 219L326 256Q327 289 332 305Q333 315 328 321Q321 328 312 334 C 288 352 271 357 276 327Q280 314 279 243L277 206Z","M688 741Q691 774 714 826Q718 835 703 850Q676 869 656 876Q643 880 636 874Q629 868 634 855Q647 831 645 816Q642 774 638 728L634 696Q628 650 621 599 C 617 569 653 578 659 607Q669 659 681 707L688 741Z","M813 640Q831 689 858 708Q873 724 859 740Q846 750 799 772Q783 778 765 771Q725 752 688 741L638 728Q601 721 563 714Q548 713 550 703Q553 696 570 691Q585 685 634 696L681 707Q771 728 778 722Q790 707 764 629 C 755 600 802 612 813 640Z","M621 599Q569 590 513 579Q497 576 510 563Q522 553 537 549Q555 545 567 550Q741 607 939 607L941 607Q957 608 961 616Q965 626 950 636Q902 669 839 647Q826 644 813 640L764 629Q739 625 713 618Q686 614 659 607L621 599Z","M580 508Q573 512 544 514Q534 515 532 512Q528 506 536 494Q557 461 575 404Q579 386 590 376Q606 360 609 373Q610 377 610 384L606 412Q593 464 590 483 C 586 506 586 506 580 508Z","M793 437Q814 479 835 489Q848 502 838 517Q775 566 737 543Q680 525 580 508 C 550 503 561 477 590 483L739 511Q757 515 763 508Q769 499 752 444 C 743 415 779 410 793 437Z","M709 398Q748 405 802 410Q811 411 812 418Q812 424 793 437L752 444Q748 444 745 443Q669 424 606 412 C 577 406 580 383 610 384Q619 384 629 385Q642 389 662 391L709 398Z","M730 298Q766 307 807 314Q838 321 843 325Q850 332 846 339Q840 348 817 354Q793 358 733 338L681 325Q644 318 603 314Q573 310 594 295Q630 276 673 287Q674 288 681 288L730 298Z","M726 159Q801 171 918 167Q939 166 946 177Q952 186 934 197Q883 233 827 216Q805 212 782 206Q754 202 727 196L680 188Q625 179 572 165Q544 156 552 181Q565 233 576 252Q585 262 579 271Q573 281 541 296Q525 303 515 298Q505 289 515 277Q534 234 505 171Q481 147 482 131Q483 121 500 108Q512 101 524 112Q573 139 679 153L726 159Z","M727 196Q727 239 730 298L733 338Q736 353 739 363Q742 378 730 386Q718 395 709 398 C 682 412 647 417 662 391Q680 364 681 325L681 288Q681 243 680 188L679 153Q679 -43 691 -65Q695 -72 702 -69Q709 -66 713 -54Q725 -24 726 159L727 196Z"],m:[[187,653,208,649,261,654,423,703,465,703],[312,843,345,804,298,573,279,556],[140,528,167,507,174,492,220,314],[193,524,211,517,386,559,425,552,446,527,390,352,391,330],[222,416,229,426,317,448,336,452,357,447],[235,326,246,338,345,356,357,364],[61,183,79,178,124,180,361,248,407,257,447,257],[283,325,305,305,298,99,291,53,301,-20],[645,865,678,827,643,623,626,606],[558,705,622,708,777,749,787,747,818,721,802,673,780,644],[512,571,547,566,695,600,869,630,921,629,951,620],[539,507,568,481,600,377],[590,505,598,498,750,530,776,527,798,504,781,462,760,452],[614,392,645,405,741,423,784,424,804,418],[596,306,605,301,645,301,794,333,835,334],[523,288,547,262,526,148,541,144,675,171,853,195,934,182],[670,388,707,364,699,-59]]}};
+
+/* ================= 파생 데이터 ================= */
+const HM={};H_RAW.forEach(h=>HM[h.c]=h);
+const WORDS=[],WM={};
+H_RAW.forEach(h=>{h.words=h.w.map(a=>{if(!WM[a[0]]){WM[a[0]]={w:a[0],r:a[1],m:a[2],s:a[3],e:a[4]||'',h:h.c};WORDS.push(WM[a[0]]);}return WM[a[0]];});});
+const INFW=INF.map(a=>({w:a[0],r:a[1],m:a[2],inf:true}));
+const RELATED={};H_RAW.forEach(h=>{RELATED[h.c]=WORDS.filter(o=>o.h!==h.c&&o.w.includes(h.c));});
+
+/* ================= 유틸 ================= */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sample=(a,n)=>shuffle(a).slice(0,Math.max(0,n));
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function today(){return fmt(new Date());}
+function parse(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function addDays(s,n){const d=parse(s);d.setDate(d.getDate()+n);return fmt(d);}
+function diffDays(a,b){return Math.round((parse(b)-parse(a))/864e5);}
+function weekStart(s){const d=parse(s);const wd=(d.getDay()+6)%7;return addDays(s,-wd);}
+function hs(c){const h=HM[c];return h?h.hun+' '+h.eum:(X[c]||'');}
+function brk(w){return [...w].map(c=>c+'('+hs(c)+')').join(' + ');}
+const lenCls=w=>w.length>=4?'l4':w.length===3?'l3':'';
+// 획순 그림: anim이면 한 획씩 그려지며 번호가 붙고, 아니면 흐린 글자 위에 번호만 보여 줌
+let SVGN=0;const SK_DUR=.7,SK_GAP=.3;
+function strokeSVG(c,anim){const d=STK[c];if(!d)return '';const id='sk'+(++SVGN);let defs='',ghost='',ink='',nums='';const placed=[];
+  const R=d.s.length<=5?38:d.s.length<=9?33:29; // 획이 많은 글자일수록 번호를 작게
+  d.s.forEach((s,i)=>{const m=d.m[i],pts=[];for(let k=0;k<m.length;k+=2)pts.push([m[k],m[k+1]]);const t=(i*(SK_DUR+SK_GAP)).toFixed(2);
+    ghost+=`<path d="${s}"/>`;
+    if(anim){defs+=`<clipPath id="${id}-${i}"><path d="${s}"/></clipPath>`;ink+=`<path class="sk" pathLength="1" clip-path="url(#${id}-${i})" d="M${pts.map(p=>p.join(' ')).join('L')}" style="animation-delay:${t}s"/>`;}
+    // 번호는 획이 시작하는 점 둘레에 두고, 앞 번호와 겹치면 옆이나 더 뒤로 비켜 놓음
+    const [x0,y0]=pts[0],[x1,y1]=pts[Math.min(1,pts.length-1)],len=Math.hypot(x1-x0,y1-y0)||1,ux=(x1-x0)/len,uy=(y1-y0)/len;
+    const cands=[[-1.5,0],[-1.3,-1.8],[-1.3,1.8],[-3.2,0],[-2.8,-2.4],[-2.8,2.4],[0,-2.4],[0,2.4],[-4.6,0]].map(([a,b])=>[a*R,b*R]).map(([a,b])=>{
+      const px=x0+ux*a-uy*b,py=900-(y0+uy*a+ux*b);return[Math.min(980,Math.max(44,px)),Math.min(980,Math.max(44,py))];});
+    const [nx,ny]=cands.find(([px,py])=>placed.every(([qx,qy])=>Math.hypot(px-qx,py-qy)>=R*2+8))||cands[0];placed.push([nx,ny]);
+    nums+=`<g class="sn" ${anim?`style="animation-delay:${t}s"`:''}><circle cx="${nx.toFixed(0)}" cy="${ny.toFixed(0)}" r="${R}"/><text x="${nx.toFixed(0)}" y="${(ny+R*.42).toFixed(0)}" font-size="${(R*1.2).toFixed(0)}">${i+1}</text></g>`;});
+  if(anim==='nums')return `<svg class="stroke" viewBox="0 0 1024 1024" aria-hidden="true">${nums}</svg>`;
+  return `<svg class="stroke ${anim?'anim':''}" viewBox="0 0 1024 1024" role="img" aria-label="${c} 획순, 모두 ${d.s.length}획"><defs>${defs}</defs><g transform="translate(0 900) scale(1 -1)"><g class="gh">${ghost}</g>${ink}</g>${nums}</svg>`;}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.getElementById('toasts').appendChild(t);setTimeout(()=>t.remove(),2800);}
+
+/* ================= 소리 (TTS) ================= */
+const TTS={ok:typeof window.speechSynthesis!=='undefined'&&typeof window.SpeechSynthesisUtterance!=='undefined',v:null,n:0,unlocked:false,cur:null,warned:false};
+function pickVoice(){try{const vs=speechSynthesis.getVoices();TTS.n=vs.length;TTS.v=vs.find(v=>/^ko[-_]?KR/i.test(v.lang))||vs.find(v=>/^ko/i.test(v.lang))||null;}catch(e){}}
+if(TTS.ok){pickVoice();try{speechSynthesis.addEventListener('voiceschanged',pickVoice);}catch(e){try{speechSynthesis.onvoiceschanged=pickVoice;}catch(e2){}}}
+// 아이패드·안드로이드 태블릿은 화면을 처음 누를 때 음성을 깨워 두어야, 그 뒤 자동으로 읽어 주는 소리도 남
+function unlockTTS(){if(!TTS.ok||TTS.unlocked)return;TTS.unlocked=true;
+  try{pickVoice();const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='ko-KR';speechSynthesis.speak(u);}catch(e){}}
+if(TTS.ok)['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockTTS,{capture:true,passive:true}));
+/* 녹음된 소리: audio/*.mp3 (묶음별 한 파일) + audio/index.json(문장 → [묶음, 시작초, 길이초])
+   기기마다 다른 음성 합성(TTS) 대신 미리 녹음한 소리를 Web Audio로 틀고, 녹음에 없는 문장만 TTS로 읽음 */
+const AUD={ctx:null,idx:null,buf:{},loading:{},src:null,req:0};
+const CAN_SAY=TTS.ok||!!(window.AudioContext||window.webkitAudioContext); // 소리로 묻는 문제를 낼 수 있는지
+fetch('audio/index.json').then(r=>r.ok?r.json():null).then(j=>{if(j)AUD.idx=j;}).catch(()=>{});
+function audCtx(){if(!AUD.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;try{AUD.ctx=new C();}catch(e){return null;}}return AUD.ctx;}
+function audLoad(g){if(AUD.buf[g])return Promise.resolve(AUD.buf[g]);if(AUD.loading[g])return AUD.loading[g];const ctx=audCtx();if(!ctx)return Promise.resolve(null);
+  AUD.loading[g]=fetch('audio/'+g+'.mp3').then(r=>r.arrayBuffer()).then(ab=>new Promise((res,rej)=>ctx.decodeAudioData(ab,res,rej))).then(b=>{AUD.buf[g]=b;return b;}).catch(()=>{delete AUD.loading[g];return null;});
+  return AUD.loading[g];}
+function audStop(){if(AUD.src){try{AUD.src.stop();}catch(e){}AUD.src=null;}}
+function audPlay(e,t){const ctx=audCtx(),my=++AUD.req;if(ctx.state!=='running')ctx.resume().catch(()=>{});
+  audLoad(e[0]).then(b=>{if(my!==AUD.req)return;if(!b){ttsSpeak(t);return;}audStop();const s=ctx.createBufferSource();s.buffer=b;s.connect(ctx.destination);s.start(0,e[1],e[2]);AUD.src=s;});}
+// 처음 화면을 누를 때 소리 장치를 깨우고(아이패드는 무음 스위치도 무시하도록), 자주 쓰는 소리를 미리 받아 둠
+function unlockAudio(){const ctx=audCtx();if(!ctx||AUD.unlocked)return;AUD.unlocked=true;
+  try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+  try{ctx.resume();const s=ctx.createBufferSource();s.buffer=ctx.createBuffer(1,1,22050);s.connect(ctx.destination);s.start(0);}catch(e){}
+  ['han','words','misc','sents'].forEach(audLoad);}
+['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+function speak(t){if(!t)return;const e=AUD.idx&&AUD.idx[t];
+  if(e&&audCtx()){try{if(TTS.ok)speechSynthesis.cancel();}catch(_){}audPlay(e,t);return;}
+  ttsSpeak(t);}
+function ttsSpeak(t){if(!TTS.ok||!t)return;
+  try{if(!TTS.v)pickVoice();
+    const go=()=>{try{const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=.85;u.pitch=1.1;u.volume=1;if(TTS.v)u.voice=TTS.v;
+      TTS.cur=u;// 크롬은 참조가 없으면 읽는 도중 끊기기도 함
+      u.onerror=e=>{if(e&&(e.error==='language-unavailable'||e.error==='voice-unavailable'||e.error==='synthesis-failed'))warnVoice();};
+      if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u);}catch(e){}};
+    // 읽는 중에 바로 cancel→speak 하면 태블릿 브라우저가 새 소리를 버리는 경우가 있어 잠깐 쉬고 읽음
+    if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(go,120);}else go();
+    if(TTS.n&&!TTS.v)warnVoice();
+  }catch(e){}}
+function warnVoice(){if(TTS.warned)return;TTS.warned=true;setTimeout(()=>toast('🔇 이 기기에서 한국어 음성을 찾지 못했어요. 기기 설정의 "텍스트 음성 변환"에서 한국어를 내려받아 주세요.'),300);}
+
+/* ================= 저장 ================= */
+const KEY='mukryong-hanja-v1';
+let DB={v:1,profiles:[],current:null,updatedAt:0};
+function load(){try{const s=localStorage.getItem(KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.profiles))DB=d;}}catch(e){}}
+let saveT=null,syncT=null;
+function save(){DB.updatedAt=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}},250);if(!syncT)syncT=setTimeout(()=>{syncT=null;syncUp();},20000);}
+const CLOUD={doc:null,ok:false,busy:false};
+async function initCloud(){
+  try{
+    if(!window.claude||typeof window.claude.use!=='function')return;
+    const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    if(!db||!user)return;
+    const uid=await user.id();if(!uid)return;
+    CLOUD.doc=db.doc('data/users/'+uid+'/state');
+    const snap=await CLOUD.doc.get();
+    if(snap.exists){const d=snap.data();
+      if(d&&typeof d.json==='string'&&(d.updatedAt||0)>(DB.updatedAt||0)&&(S.screen==='profiles'||S.screen==='home')){
+        const nd=JSON.parse(d.json);if(nd&&Array.isArray(nd.profiles)){DB=nd;try{localStorage.setItem(KEY,d.json);}catch(e){}if(!cur())S.screen='profiles';render();}}}
+    CLOUD.ok=true;
+    if(!snap.exists&&DB.profiles.length)syncUp();
+  }catch(e){CLOUD.ok=false;}
+}
+async function syncUp(){if(!CLOUD.ok||!CLOUD.doc||CLOUD.busy)return;CLOUD.busy=true;try{await CLOUD.doc.set({json:JSON.stringify(DB),updatedAt:DB.updatedAt||Date.now()});}catch(e){if(e&&e.code==='invalid_argument')CLOUD.ok=false;}CLOUD.busy=false;}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}syncUp();}});
+
+/* ================= 프로필 / 진도 ================= */
+const S={screen:'profiles',manage:false,delId:null,form:null,modal:null,adv:null,g:null,q:null,qa:null,qctx:null,detail:null,gate:null,after:null,more:false,turn:0};
+function cur(){return DB.profiles.find(p=>p.id===DB.current);}
+function col(p){return COLORS.find(c=>c.id===p.color)||COLORS[0];}
+function nL(p){return Object.keys(p.learned).length;}
+function nS(p){return Object.keys(p.seen).length;}
+function nM(p){return Object.values(p.srs).filter(e=>e.b===6).length;}
+function stageOf(xp){let s=0;STAGES.forEach((st,i)=>{if(xp>=st.x)s=i;});return s;}
+function L(p){const t=today();if(!p.log[t])p.log[t]={sec:0,newH:0,rev:0,games:0,done:0};return p.log[t];}
+function newProfile(f){return{id:'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:f.name.trim(),grade:f.grade,color:f.color,course:f.course,
+  xp:0,streak:0,best:0,lastDone:null,leaves:1,leafWeek:weekStart(today()),learned:{},seen:{},srs:{},wrong:{},log:{},badges:{},games:{},infer:{ok:0,n:0},inferDone:{},adv:0,revOk:0,together:false,togetherDone:0,created:today()};}
+function checkDaily(p){
+  const t=today(),wk=weekStart(t);
+  if(p.leafWeek!==wk){p.leaves=Math.min(2,(p.leaves||0)+1);p.leafWeek=wk;}
+  if(p.lastDone&&p.streak>0){const gap=diffDays(p.lastDone,t);
+    if(gap>1){const miss=gap-1;
+      if(p.leaves>=miss){p.leaves-=miss;p.lastDone=addDays(t,-1);setTimeout(()=>toast('🍃 쉼표 나뭇잎 '+miss+'장으로 연속 기록을 지켰어요!'),400);}
+      else p.streak=0;}}
+  save();
+}
+function nextNew(p,n){const out=[];let title='';
+  for(const l of COURSES[p.course].lessons){for(const c of l[0]){if(!p.learned[c]&&out.length<n){if(!out.length)title=l[1];out.push(c);}}if(out.length>=n)break;}
+  return{cs:out,title};}
+function courseProg(p,k){const ls=COURSES[k].lessons;return{done:ls.filter(l=>[...l[0]].every(c=>p.learned[c])).length,total:ls.length};}
+function srsAdd(p,key){if(!p.srs[key])p.srs[key]={b:1,due:addDays(today(),1)};}
+function srsAnswer(p,key,ok){const e=p.srs[key];
+  if(!ok){p.wrong[key]=(p.wrong[key]||0)+1;if(e){e.b=1;e.due=addDays(today(),1);}return;}
+  if(!e)return;if(e.b>=5){e.b=6;e.due=null;}else{e.b++;e.due=addDays(today(),IV[e.b]);}}
+function dueKeys(p){const t=today();return Object.entries(p.srs).filter(([k,e])=>e.b<6&&e.due&&e.due<=t).sort((a,b)=>a[1].b-b[1].b||a[1].due.localeCompare(b[1].due)).map(x=>x[0]);}
+function checkBadges(p,silent){const got=[];BADGES.forEach(b=>{if(!p.badges[b.id]&&b.f(p)){p.badges[b.id]=today();got.push(b);}});if(got.length&&!silent)got.forEach((b,i)=>setTimeout(()=>toast(b.i+' 새 배지: '+b.n),i*600));return got;}
+const itemKey=it=>it.t==='h'?'h:'+it.c:'w:'+it.w;
+const keyItem=k=>k[0]==='h'?{t:'h',c:k.slice(2)}:{t:'w',w:k.slice(2)};
+const itemLabel=it=>it.t==='h'?it.c:it.w;
+const itemSay=it=>it.t==='h'?hs(it.c):(WM[it.w]?WM[it.w].r:'');
+function freePool(p){return[...Object.keys(p.learned).map(c=>({t:'h',c})),...Object.keys(p.seen).filter(w=>WM[w]).map(w=>({t:'w',w}))];}
+function poolFrom(p,chars){
+  let items=[...chars.map(c=>({t:'h',c})),...WORDS.filter(o=>chars.includes(o.h)&&p.seen[o.w]).map(o=>({t:'w',w:o.w}))];
+  if(items.length<12){const have=new Set(items.map(itemKey));items=items.concat(sample(freePool(p).filter(it=>!have.has(itemKey(it))),12-items.length));}
+  return items;}
+
+/* ================= 묵룡 그림 ================= */
+function dragon(stage,c,cls){
+  cls=cls||'';
+  if(stage===0)return `<svg class="dragon ${cls}" viewBox="0 0 200 200" role="img" aria-label="묵룡 알"><ellipse cx="100" cy="184" rx="48" ry="7" fill="var(--shadow)"/><g class="wob"><path d="M100 30C140 30 160 95 160 125C160 160 133 180 100 180C67 180 40 160 40 125C40 95 60 30 100 30Z" fill="#FFF7E2" stroke="${c.d}" stroke-width="5"/><circle cx="78" cy="100" r="11" fill="${c.m}"/><circle cx="123" cy="80" r="7" fill="${c.m}"/><circle cx="118" cy="138" r="14" fill="${c.m}"/><circle cx="70" cy="146" r="6" fill="${c.m}"/><path d="M68 64l10 8 8-10 10 9" fill="none" stroke="${c.d}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>`;
+  // 깨어난 뒤에는 메인 캐릭터 그림(character/mukryong.png)을 쓰고, 단계가 오를수록 커지며 마지막 단계는 금빛으로 빛남
+  // 프로필 색은 초록 그림의 색상을 돌려서 맞춤
+  const s=stage,k=[0,.78,.86,.94,1][s],hue={green:0,sky:62,pink:-155,purple:110,orange:-105}[c.id]||0;
+  return `<span class="dragon dimg st${s} ${cls}" role="img" aria-label="${STAGES[s].n}"><img src="character/mukryong.png" alt="" draggable="false" style="--k:${k};${hue?`filter:hue-rotate(${hue}deg)`:''}"></span>`;
+}
+
+/* ================= 문제 만들기 ================= */
+function distractH(c,n){const p=cur(),cand=H_RAW.filter(h=>h.c!==c);const lr=cand.filter(h=>p&&p.learned[h.c]);
+  let res=sample(lr,Math.min(n,lr.length));if(res.length<n)res=res.concat(sample(cand.filter(h=>!res.includes(h)),n-res.length));return res;}
+function distractW(o,n,pool){const base=(pool||[...WORDS,...INFW]).filter(x=>x.w!==o.w&&x.r!==o.r&&x.m!==o.m);
+  const share=base.filter(x=>[...x.w].some(ch=>o.w.includes(ch)));let res=sample(share,Math.min(2,share.length));
+  res=res.concat(sample(base.filter(x=>!res.includes(x)),n-res.length));return res;}
+function makeQ(item,kind){
+  if(item.t==='h'){const h=HM[item.c],key='h:'+h.c,all=shuffle([h,...distractH(h.c,3)]);
+    const base={key,answerText:h.c+' '+hs(h.c),afterSay:hs(h.c),explain:h.o};
+    if(kind==='h2m')return{...base,prompt:`<div class="qbig han">${h.c}</div><div class="qsub">이 한자의 뜻과 음은?</div>`,opts:all.map(x=>({html:`<span class="ko">${hs(x.c)}</span>`,ok:x===h}))};
+    const hopts=all.map(x=>({html:`<span class="han">${x.c}</span>`,ok:x===h}));
+    if(kind==='m2h')return{...base,prompt:`<div class="qmid">'${hs(h.c)}'</div><div class="qsub">알맞은 한자를 골라요</div>`,opts:hopts};
+    if(kind==='pic')return{...base,prompt:`<div class="qemoji">${h.e}</div><div class="qsub">그림에 어울리는 한자는?</div>`,opts:hopts};
+    return{...base,prompt:`<div class="qear">👂</div><div class="qsub">잘 듣고 알맞은 한자를 골라요</div>${CAN_SAY?'':`<div class="qmid">${hs(h.c)}</div>`}`,say:hs(h.c),autoSay:true,opts:hopts,afterSay:null};
+  }
+  const o=WM[item.w]||INFW.find(x=>x.w===item.w),key='w:'+o.w,all=shuffle([o,...distractW(o,3)]);
+  const base={key,answerText:o.w+' ('+o.r+')',afterSay:o.r,explain:brk(o.w)+' → '+o.m};
+  const wopts=all.map(x=>({html:`<span class="han">${x.w}</span>`,ok:x===o}));
+  if(kind==='w2m')return{...base,answerText:o.m,prompt:`<div class="qbig han ${lenCls(o.w)}">${o.w}</div><div class="qsub">이 낱말의 뜻은?</div>`,opts:all.map(x=>({html:`<span>${x.m}</span>`,ok:x===o}))};
+  if(kind==='m2w')return{...base,prompt:`<div class="qmid">${o.m}</div><div class="qsub">이 뜻을 가진 낱말은?</div>`,opts:wopts};
+  // 한글 읽기(sub)는 답을 고른 뒤에만 보여 줌: 한글이 아니라 한자를 보고 고르게
+  if(kind==='pic')return{...base,prompt:`<div class="qemoji">${o.e}</div><div class="qsub">그림에 어울리는 낱말은?</div>`,opts:all.map(x=>({html:`<span class="han">${x.w}</span>`,sub:x.r,ok:x===o}))};
+  if(kind==='sent'&&o.s)return{...base,prompt:`<div class="qsent">${o.s.replace('___','<span class="blank">?</span>')}</div><div class="qsub">빈칸에 알맞은 낱말은?</div>`,opts:all.map(x=>({html:`<span class="han">${x.w}</span>`,sub:x.r,ok:x===o})),afterSay:o.s.replace('___',o.r)};
+  return{...base,prompt:`<div class="qear">👂</div><div class="qsub">잘 듣고 알맞은 낱말을 골라요</div>${CAN_SAY?'':`<div class="qmid">${o.r}</div>`}`,say:o.r,autoSay:true,opts:wopts,afterSay:null};
+}
+function randKind(it){const k=it.t==='h'?['h2m','m2h','pic']:['w2m','m2w','sent'];if(CAN_SAY)k.push('listen');return pick(k);}
+function setQ(q,ctx){S.q=q;S.qa=null;S.qctx=ctx;if(q.autoSay)setTimeout(()=>speak(q.say),400);}
+function quizHTML(){const q=S.q,a=S.qa,ok=a!=null&&q.opts[a].ok;
+  return `<div class="quiz card">${turnHTML()}<div class="qprompt">${q.prompt}</div>
+  ${q.say?`<button class="say" style="align-self:center" data-act="say" data-t="${esc(q.say)}">🔊 다시 듣기</button>`:''}
+  <div class="opts">${q.opts.map((o,i)=>{let c='';if(a!=null)c=o.ok?'right':(i===a?'wrong':'dim');return `<button class="opt ${c}" data-act="qans" data-i="${i}" ${a!=null?'disabled':''}>${o.html}${o.sub&&a!=null?`<small>${o.sub}</small>`:''}</button>`;}).join('')}</div>
+  ${a!=null?`<div class="fb ${ok?'good':'soft'}"><b class="disp">${ok?pick(PRAISE):'괜찮아요, 이제 알았으니 됐어요!'}</b>${ok?'':`<span>정답은 <b>${q.answerText}</b></span>`}${q.explain?`<small>${q.explain}</small>`:''}</div>
+  <button class="btn big" data-act="qnext">다음 →</button>`:''}</div>`;}
+function turnHTML(){const p=cur();if(!p||!p.together)return '';return `<div class="turn">${S.turn%2?'🧑 어른 차례':'🧒 '+esc(p.name)+' 차례'}</div>`;}
+
+/* ================= 화면 ================= */
+const V={};
+function courseOpts(sel,act,grade){return Object.entries(COURSES).map(([k,c])=>c.locked
+  ?`<div class="copt locked"><b>${c.name}<span class="tag">준비 중</span></b><small>${c.desc}</small></div>`
+  :`<button class="copt ${sel===k?'on':''}" data-act="${act}" data-v="${k}"><b>${c.name}${grade&&((k==='k12'&&grade<=2)||(k==='g8'&&grade>2))?'<span class="tag">추천</span>':''}</b><small>${c.desc} · ${c.lessons.length}단원</small></button>`).join('');}
+
+V.profiles=()=>{const ps=DB.profiles;
+  return `<div class="wrap">
+  <header class="brand"><div class="logo disp">묵룡 <span class="han">漢字</span> 숲</div><p class="muted">하루 10분, 한자 씨앗을 심고 낱말 열매를 따요</p></header>
+  ${ps.length?'':`<section class="card hello">${dragon(0,COLORS[0])}<div><h2 style="font-size:22px">안녕! 나는 묵룡이야.</h2><p class="muted">아직 알 속에 있어. 프로필을 만들고 한자를 배우면 내가 깨어나서 쑥쑥 자라!</p></div></section>`}
+  <h1 class="h1">${ps.length?'누가 공부할까요?':'먼저 프로필을 만들어요'}</h1>
+  <div class="pgrid">
+  ${ps.map(p=>`<div class="pcard"><button class="pmain" data-act="pick" data-id="${p.id}">${dragon(stageOf(p.xp),col(p),'mini')}<b class="disp">${esc(p.name)}</b><small>${p.grade}학년 · 🔥 ${p.streak}일</small></button>
+    ${S.manage?`<div class="prow"><button class="btn ghost sm" data-act="editP" data-id="${p.id}">고치기</button><button class="btn ghost sm danger" data-act="delP" data-id="${p.id}">지우기</button></div>`:''}
+    ${S.delId===p.id?`<div class="confirm"><span><b>${esc(p.name)}</b>의 기록이 모두 사라져요. 정말 지울까요?</span><div class="prow"><button class="btn sm" style="background:var(--coral)" data-act="delYes" data-id="${p.id}">지우기</button><button class="btn ghost sm" data-act="delNo">그만두기</button></div></div>`:''}</div>`).join('')}
+  ${ps.length<6?`<button class="pcard add" data-act="newP"><span class="plus">＋</span>새 친구</button>`:''}
+  </div>
+  ${ps.length?`<div class="row" style="justify-content:center"><button class="btn ghost sm" data-act="manage">${S.manage?'관리 끝내기':'프로필 관리'}</button></div>`:''}
+  ${S.manage||!ps.length?`<div class="row" style="justify-content:center"><button class="btn ghost sm" data-act="restorePick">📂 기록 파일 불러오기</button></div><input type="file" id="restore-in" accept=".json,application/json" hidden>${restoreBox()}`:''}
+  <p class="foot">학습 기록은 이 기기의 브라우저에 저장돼요.${CLOUD.ok?' claude.ai에 로그인한 계정에도 함께 저장하고 있어요.':''}</p>
+  </div>`;};
+
+V.form=()=>{const f=S.form;
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="toProfiles">← 뒤로</button></div>
+  <h1 class="h1">${f.id?'프로필 고치기':'새 친구 만들기'}</h1>
+  <div class="card form">
+    <label class="lbl" for="f-name">이름 (별명도 좋아요)</label>
+    <input id="f-name" class="inp" maxlength="8" value="${esc(f.name)}" placeholder="예: 하늘" autocomplete="off">
+    <div class="lbl">학년</div>
+    <div class="seg">${[1,2,3,4,5,6].map(g=>`<button class="segb ${f.grade===g?'on':''}" data-act="fgrade" data-v="${g}">${g}학년</button>`).join('')}</div>
+    <div class="lbl">내 묵룡 색깔</div>
+    <div class="swatches">${COLORS.map(c=>`<button class="sw ${f.color===c.id?'on':''}" data-act="fcolor" data-v="${c.id}" aria-label="${c.n}">${dragon(1,c)}</button>`).join('')}</div>
+    <div class="lbl">공부할 코스 <small class="muted">(나중에 바꿀 수 있어요)</small></div>
+    <div class="copts">${courseOpts(f.course,'fcourse',f.grade)}</div>
+  </div>
+  <button class="btn big" data-act="fsave" ${f.name.trim()?'':'disabled'} id="fsave">${f.id?'저장하기':'묵룡 알 받기 🥚'}</button></div>`;};
+
+function homeLine(p,st){
+  if(p.lastDone===today())return '오늘도 해냈어! 내일 또 만나 🌙';
+  if(st===0)return '알 속에서 기다리는 중… 한자를 배우면 깨어날 거야!';
+  if(p.streak>1)return p.streak+'일째 함께하고 있어! 오늘도 같이 가자';
+  if(!nL(p))return '안녕! 오늘 첫 한자를 만나러 가 볼까?';
+  return pick(['오늘은 어떤 한자를 만날까?','한자를 배우면 내가 쑥쑥 자라!','10분이면 충분해. 같이 가자!']);
+}
+V.home=()=>{const p=cur(),st=stageOf(p.xp),nx=STAGES[st+1],done=p.lastDone===today(),pr=courseProg(p,p.course),nn=nextNew(p,3);
+  const pct=nx?Math.round((p.xp-STAGES[st].x)/(nx.x-STAGES[st].x)*100):100;
+  return `<div class="wrap">
+  <div class="topbar"><button class="chip" data-act="toProfiles" aria-label="프로필 바꾸기">${dragon(st,col(p),'tiny')} ${esc(p.name)} ▾</button>
+    <div class="chips"><span class="chip" title="연속 학습일">🔥 ${p.streak}일</span><span class="chip" title="쉼표 나뭇잎: 하루 쉬어도 연속 기록을 지켜 줘요">🍃 ${p.leaves}</span></div></div>
+  <section class="hero card"><div class="bubble">${homeLine(p,st)}</div>${dragon(st,col(p),'big')}
+    <div class="stage"><b class="disp">${STAGES[st].n}</b>${nx?`<div class="xpbar"><i style="width:${pct}%"></i></div><small class="muted">${nx.n}까지 ${nx.x-p.xp}점</small>`:'<small class="muted">가장 높은 단계예요!</small>'}</div></section>
+  <button class="btn big ${done?'sun':''}" data-act="startAdv">${done?'✔ 오늘 모험 완료! 한 번 더 배우기':'🌱 오늘의 모험 시작'}</button>
+  ${nn.cs.length?`<div class="preview">오늘 만날 한자 <span class="han">${nn.cs.map(()=>'?').join(' ')}</span> · ${nn.title}</div>`:`<div class="preview">이 코스의 한자를 모두 배웠어요! 복습으로 숲을 지켜요</div>`}
+  <button class="coursebar card" data-act="openCourse"><span class="muted" style="font-size:14px">지금 코스 · 눌러서 바꾸기</span><b class="disp">${COURSES[p.course].name}</b><div class="pbar"><i style="width:${Math.round(pr.done/pr.total*100)}%"></i></div><div class="meta"><span>${pr.done}/${pr.total} 단원</span><span>배운 한자 ${nL(p)}자 · 낱말 ${nS(p)}개</span></div></button>
+  <button class="toggle ${p.together?'on':''}" data-act="together" role="switch" aria-checked="${p.together}"><span>👨‍👩‍👧 어른과 함께 하기<small>게임에서 번갈아 차례를 알려 줘요</small></span><span class="knob"></span></button>
+  <nav class="tiles">
+    <button class="tile-n" data-act="toGames"><span class="ic">🎲</span><b>놀이터</b><small>배운 한자로 자유롭게 게임해요</small></button>
+    <button class="tile-n" data-act="toForest"><span class="ic">🌳</span><b>나의 한자 숲</b><small>배운 한자 ${nL(p)}자 · 금빛 나무 ${nM(p)}그루</small></button>
+    <button class="tile-n" data-act="toBadges"><span class="ic">🏅</span><b>배지</b><small>${Object.keys(p.badges).length}/${BADGES.length}개 모았어요</small></button>
+    <button class="tile-n" data-act="toGate"><span class="ic">📊</span><b>부모님 리포트</b><small>학습 기록 보기 (어른 확인)</small></button>
+  </nav>
+  ${S.modal==='course'?`<div class="ov" data-act="closeModal"><div class="sheet" data-stop="1"><div class="sheet-h"><h2>코스 고르기</h2><button class="x" data-act="closeModal" aria-label="닫기">×</button></div><p class="muted">어느 코스에서 배워도 같은 한자는 한 번만 배우면 돼요.</p><div class="copts">${courseOpts(p.course,'setCourse',p.grade)}</div></div></div>`:''}
+  </div>`;};
+
+/* ---- 모험 ---- */
+function advSteps(){const ph=S.adv.phase,order=['review','learn','game','finish'],names=['복습','배우기','게임','마무리'];
+  const idx=ph==='infer'?3:order.indexOf(ph);
+  return `<div class="steps">${names.map((n,i)=>`<span class="stp ${i===idx?'on':i<idx?'ok':''}">${n}</span>`).join('')}</div>`;}
+// 배우기 ③에서는 한자만 먼저 보여 줌: 한 번 누르면 소리, 한 번 더 누르면 한글(뜻·음, 읽기, 풀이)이 나옴
+function wordStep(w){return (S.wst&&S.wst[w])||0;}
+function wordCardQuiz(o,focus){const st=wordStep(o.w);
+  return `<button class="wcard quiz s${st}" data-act="wtap" data-w="${esc(o.w)}" aria-label="${st<2?'낱말 카드, 눌러서 듣기':esc(o.r)+' 다시 듣기'}"><div class="wtop"><span class="whan">${[...o.w].map(c=>`<span class="wc ${c===focus?'focus':''}"><b>${c}</b><small>${hs(c)}</small></span>`).join('')}</span><span class="say" aria-hidden="true">🔊</span></div>
+  ${st<2?`<div class="whint">${st?'👆 한 번 더 누르면 한글이 나와요':'🔊 눌러서 소리를 들어요'}</div>`:`<div class="wread disp">${o.r} ${o.e}</div><div class="wmean">${o.m}</div>`}</button>`;}
+function wordCard(o,focus){return `<div class="wcard"><div class="wtop"><span class="whan">${[...o.w].map(c=>`<span class="wc ${c===focus?'focus':''}"><b>${c}</b><small>${hs(c)}</small></span>`).join('')}</span><button class="say" data-act="say" data-t="${esc(o.r)}" aria-label="${esc(o.r)} 듣기">🔊</button></div><div class="wread disp">${o.r} ${o.e}</div><div class="wmean">${o.m}</div></div>`;}
+function nWords(p){return p.grade<=2?3:p.grade<=4?4:5;}
+V.adv=()=>{const p=cur(),ad=S.adv;let body='';
+  if(ad.phase==='review'){body=`<h2 style="font-size:22px">🔁 복습 시간 <small class="muted">${ad.ri+1}/${ad.rev.length}</small></h2><p class="muted">예전에 배운 걸 다시 꺼내 보면 오래오래 기억나요.</p>${quizHTML()}`;}
+  else if(ad.phase==='learn'){const h=HM[ad.newC[ad.hi]],hsx=hs(h.c),n=nWords(p),shown=h.words.slice(0,S.more?99:n),rest=h.words.slice(n);
+    const head=`<p class="muted">새 한자 ${ad.hi+1}/${ad.newC.length}${ad.title?' · '+ad.title:''}</p>`;
+    const th=p.together?`<p class="together-hint">👨‍👩‍👧 어른이 먼저 읽어 주고, 아이가 따라 읽어요</p>`:'';
+    if(ad.page===0)body=`${head}<div class="card learn"><div class="step-t">① 그림에서 글자로</div><div class="reveal paper"><span class="emo">${h.e}</span><span class="hz han">${h.c}</span></div>
+      <div class="hunum"><span class="disp">${h.hun} <b>${h.eum}</b></span><button class="say big" data-act="say" data-t="${esc(hsx)}" aria-label="소리 듣기">🔊</button></div>${th}
+      <p class="story">${h.o}</p>${h.n?`<p class="note">💡 ${h.n}</p>`:''}<p class="muted">모두 ${h.s}획</p></div>
+      <button class="btn big" data-act="lnext">따라 써 볼래요 →</button>`;
+    else if(ad.page===1)body=`${head}<div class="card learn"><div class="step-t">② 따라 쓰기</div>
+      ${STK[h.c]?`<p class="muted">먼저 쓰는 순서를 봐요. 숫자 차례대로 한 획씩 써요. (모두 ${h.s}획)</p>
+      <div class="sorder paper" id="sorder">${strokeSVG(h.c,true)}</div>
+      <button class="btn ghost sm" data-act="replayStroke">▶ 순서 다시 보기</button>
+      <p class="muted">이제 흐린 글자 위를 숫자 차례대로 따라 써요.</p>`:`<p class="muted">흐린 글자 위를 손가락이나 마우스로 따라 써요. (모두 ${h.s}획)</p>`}
+      <div class="trace paper">${STK[h.c]?`<span class="ghost svg">${strokeSVG(h.c,false)}</span>`:`<span class="ghost han">${h.c}</span>`}<canvas id="cv" aria-label="따라 쓰기 칸"></canvas>${STK[h.c]?`<span class="ghost svg top">${strokeSVG(h.c,'nums')}</span>`:''}</div>
+      ${STK[h.c]?`<p class="tmsg" id="tmsg" aria-live="polite">노란 1번 동그라미에서 시작해요.</p>`:''}
+      <div class="row" style="justify-content:center"><button class="btn ghost sm" data-act="clearCv">지우기</button><button class="btn ghost sm" data-act="say" data-t="${esc(hsx)}">🔊 ${hsx}</button></div></div>
+      <button class="btn big" id="writeDone" data-act="lnext" ${STK[h.c]?'disabled':''}>${STK[h.c]?'✏️ 끝까지 쓰면 넘어갈 수 있어요':'다 썼어요 ✓'}</button>`;
+    else if(ad.page===2)body=`${head}<div class="card learn"><div class="step-t">③ 낱말 넓히기 · <span class="han">${h.c}</span> 씨앗에서 열린 열매</div><p class="muted"><span class="han">${h.c}</span>(${hsx}) 글자가 들어간 낱말이에요. 카드를 누르면 소리가 나와요. 따라 읽고 한 번 더 누르면 한글이 보여요.</p>${th}
+      <div class="words">${shown.map(o=>wordCardQuiz(o,h.c)).join('')}</div>
+      ${rest.length&&!S.more?`<button class="btn ghost sm" data-act="more">낱말 더 보기 (${rest.length})</button>`:''}
+      ${RELATED[h.c].length?`<div class="related"><span class="muted">다른 글자의 낱말에도 '${h.c}'가 들어 있어요:</span>${RELATED[h.c].slice(0,6).map(o=>{const st=wordStep(o.w);return `<button class="rchip s${st}" data-act="wtap" data-w="${esc(o.w)}"><span class="han">${o.w}</span>${st<2?`<span class="rhint">${st?'👆':'🔊'}</span>`:o.r}</button>`;}).join('')}</div>`:''}</div>
+      <button class="btn big" data-act="lnext">문장 속에서 찾아볼래요 →</button>`;
+    else body=`${head}<div class="step-t">④ 문장 속 낱말 (${ad.si+1}/${ad.sq.length})</div>${quizHTML()}`;
+  }
+  else if(ad.phase==='game'){body=`<h2 style="font-size:24px">🎲 얼마나 알게 됐는지 게임으로 확인해요</h2><p class="muted">하고 싶은 놀이를 하나 골라요.</p>
+    <div class="ggrid">${GAMES.map(g=>`<button class="gcard" data-act="startGame" data-id="${g.id}" data-adv="1"><span class="ic">${g.i}</span><b>${g.n}</b><small>${g.d}</small>${p.games[g.id]?`<span class="cnt">${p.games[g.id]}번 했어요</span>`:''}</button>`).join('')}</div>`;}
+  else if(ad.phase==='infer'){body=`<h2 style="font-size:22px">🔎 보너스 · 뜻 추리 <small class="muted">${ad.ii+1}/${ad.infQ.length}</small></h2><p class="muted">처음 보는 낱말이에요! 아는 글자로 뜻을 짐작해 봐요.</p>${quizHTML()}`;}
+  else if(ad.phase==='finish'){body=finishHTML();}
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="toHome">← 그만하기</button>${advSteps()}</div>${body}</div>`;};
+function finishHTML(){const p=cur(),ad=S.adv,st=ad.endStage,grew=st>ad.startStage;
+  return `<div class="confetti" aria-hidden="true">${Array.from({length:36},(_,i)=>`<i style="left:${(i*97)%100}%;background:${['#FFC83D','#5DBB7A','#5AAEE6','#F28DB2','#FF7A6B'][i%5]};animation-delay:${(i%12)*.08}s"></i>`).join('')}</div>
+  <h2 class="fin-h">오늘의 모험 완료!</h2>
+  ${grew?`<div class="grow">🎉 묵룡이 <b>${STAGES[st].n}</b>(으)로 자랐어요!</div>`:''}
+  <div class="card hero" style="background:var(--surface)">${dragon(st,col(p),'big')}<div class="bubble">${grew?'고마워! 네 덕분에 이만큼 컸어!':'오늘도 함께해 줘서 고마워!'}</div></div>
+  ${ad.learned.length?`<div class="card"><p class="lesson-h">새로 심은 한자 씨앗</p><div class="newh">${ad.learned.map(c=>`<span class="paper han">${c}</span>`).join('')}</div></div>`:''}
+  <div class="stats">
+    <div class="stat"><small>받은 점수</small><b>+${ad.xp}</b></div>
+    <div class="stat"><small>연속 학습</small><b>🔥 ${p.streak}일</b></div>
+    ${ad.rev.length?`<div class="stat"><small>복습 정답</small><b>${ad.revOk}/${ad.rev.length}</b></div>`:''}
+    <div class="stat"><small>만난 낱말 (모두)</small><b>${nS(p)}개</b></div>
+  </div>
+  ${ad.newBadges&&ad.newBadges.length?`<div class="card"><p class="lesson-h">새로 받은 배지</p><div class="bdgrid">${ad.newBadges.map(b=>`<div class="bd"><span class="ic">${b.i}</span><b>${b.n}</b><small>${b.d}</small></div>`).join('')}</div></div>`:''}
+  <button class="btn big" data-act="toHome">홈으로</button>
+  <button class="btn ghost" data-act="toForest">나의 한자 숲 보러 가기 🌳</button>`;}
+
+/* ---- 놀이터 / 게임 ---- */
+V.games=()=>{const p=cur(),pool=freePool(p),ok=pool.length>=6,canInf=nL(p)>0&&inferCands(p,1).length>0;
+  const infCard=`<button class="gcard infcard" data-act="startGame" data-id="infer" ${canInf?'':'disabled'} style="${canInf?'':'opacity:.5'}"><span class="ic">${INFER_GAME.i}</span><b>${INFER_GAME.n}</b><small>${INFER_GAME.d}</small><span class="cnt">${p.infer.n?'지금까지 '+p.infer.n+'문제 · 정답률 '+Math.round(p.infer.ok/p.infer.n*100)+'%':'문해력 연습 놀이예요'}</span></button>`;
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="toHome">← 홈</button></div>
+  <h1 class="h1">🎲 놀이터</h1><p class="muted">${ok?`지금까지 배운 한자 ${nL(p)}자와 낱말 ${nS(p)}개로 놀아요. 틀린 문제는 복습 상자로 돌아가요.`:'먼저 오늘의 모험에서 한자를 배우면 놀이터가 열려요!'}</p>
+  ${infCard}
+  <div class="ggrid">${GAMES.map(g=>`<button class="gcard" data-act="startGame" data-id="${g.id}" ${ok?'':'disabled'} style="${ok?'':'opacity:.5'}"><span class="ic">${g.i}</span><b>${g.n}</b><small>${g.d}</small>${p.games[g.id]?`<span class="cnt">${p.games[g.id]}번 했어요</span>`:''}</button>`).join('')}</div></div>`;};
+
+function startGame(id,fromAdv){const p=cur();const pool=fromAdv?poolFrom(p,S.adv.learned.length?S.adv.learned:Object.keys(p.learned).slice(-6)):freePool(p);
+  S.turn=0;const g={type:id,fromAdv,pool,done:false,correct:0,total:0};S.g=g;
+  if(id==='memory'){const hz=shuffle(pool.filter(i=>i.t==='h')),ws=shuffle(pool.filter(i=>i.t==='w'));let chosen=[...hz.slice(0,3),...ws.slice(0,3)];
+    if(chosen.length<6)chosen=chosen.concat(shuffle(pool.filter(i=>!chosen.includes(i))).slice(0,6-chosen.length));
+    const cards=[];chosen.forEach((it,i)=>{cards.push({pair:i,k:'h',html:itemLabel(it),label:itemLabel(it),say:itemSay(it)});cards.push({pair:i,k:'k',html:it.t==='h'?hs(it.c):WM[it.w].r,label:it.t==='h'?hs(it.c):WM[it.w].r,say:itemSay(it)});});
+    g.cards=shuffle(cards);g.open=[];g.moves=0;g.matched=0;g.pairs=chosen.length;g.lock=false;}
+  else if(id==='bingo'){let cells=shuffle(pool.filter(i=>i.t==='w')).slice(0,6);cells=cells.concat(shuffle(pool.filter(i=>i.t==='h')).slice(0,9-cells.length));
+    if(cells.length<9)cells=cells.concat(shuffle(pool.filter(i=>!cells.includes(i))).slice(0,9-cells.length));
+    g.cells=shuffle(cells);g.st=g.cells.map(()=>false);g.order=shuffle(g.cells.map((_,i)=>i));g.ci=0;g.showText=!CAN_SAY;g.lines=0;g.total=g.cells.length;setTimeout(()=>bingoSay(),500);}
+  else if(id==='assemble'){g.rounds=shuffle(pool.filter(i=>i.t==='w')).slice(0,5).map(i=>WM[i.w]);g.ri=0;g.total=g.rounds.length;if(!g.rounds.length){g.type='dictation';return startGame('dictation',fromAdv);}asmRound();}
+  else if(id==='board'){g.pos=0;g.len=20;g.die=null;g.rolling=false;g.q=false;g.items=shuffle(pool);g.qi=0;g.msg='주사위를 굴려서 묵룡 둥지 🪺까지 가요!';}
+  else if(id==='infer'){const cs=inferCands(p,5);if(!cs.length){toast('지금은 낼 수 있는 뜻 추리 문제가 없어요. 한자를 더 배워 봐요!');return;}
+    g.qs=cs.map(makeInferQ);g.qi=0;g.total=g.qs.length;setQ(g.qs[0],ctxInferGame());}
+  else{const kind=id==='detective'?'pic':'listen';let items=id==='detective'?pool.filter(i=>i.t==='h'||(WM[i.w]&&WM[i.w].e)):pool;
+    g.qs=shuffle(items).slice(0,6).map(it=>makeQ(it,kind));g.qi=0;g.total=g.qs.length;setQ(g.qs[0],ctxQuizGame());}
+  go('game');}
+function ctxQuizGame(){return{onAnswer(ok){const g=S.g;if(ok)g.correct++;else srsAnswer(cur(),S.q.key,false);save();},onNext(){const g=S.g;g.qi++;S.turn++;if(g.qi<g.qs.length){setQ(g.qs[g.qi],ctxQuizGame());render();}else endGame();}};}
+function bingoSay(){const g=S.g;if(!g||g.type!=='bingo'||g.done)return;speak(itemSay(g.cells[g.order[g.ci]]));}
+function bingoLines(st){const L3=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];return L3.filter(l=>l.every(i=>st[i])).length;}
+function asmRound(){const g=S.g,o=g.rounds[g.ri];if(!o)return;const chars=[...o.w];const pool8=H_RAW.map(h=>h.c).filter(c=>!chars.includes(c));
+  g.tray=shuffle([...chars,...sample(pool8,Math.max(3,6-chars.length))]).map(c=>({c,used:false}));g.slots=[];g.rdone=false;g.wrongThis=false;}
+function endGame(){const g=S.g,p=cur();if(g.done)return;g.done=true;const xp=5+Math.min(g.correct,10);g.xp=xp;p.xp+=xp;p.games[g.type]=(p.games[g.type]||0)+1;L(p).games++;
+  if(g.fromAdv){S.adv.xp+=xp;S.adv.gamePlayed=true;}else checkBadges(p);save();speak(pick(['참 잘했어요!','멋지게 해냈어요!','최고예요!']));render();}
+const INFER_GAME={id:'infer',i:'🔎',n:'뜻 추리 탐정',d:'처음 보는 낱말 5개의 뜻을 아는 글자로 짐작해요'};
+V.game=()=>{const g=S.g,meta=GAMES.find(x=>x.id===g.type)||INFER_GAME;let body='';
+  if(g.done){const ratio=g.total?g.correct/g.total:1;let stars=ratio>=.9?3:ratio>=.6?2:1;if(g.type==='memory')stars=g.moves<=g.pairs+3?3:g.moves<=g.pairs*2+2?2:1;
+    const detail=g.type==='memory'?`${g.moves}번 뒤집어서 짝을 모두 찾았어요.`:g.type==='board'?`문제 ${g.total}개 가운데 ${g.correct}개를 맞히고 둥지에 도착했어요!`:`${g.total}개 가운데 ${g.correct}개를 맞혔어요.`;
+    body=`<div class="card result"><div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div><h2 style="font-size:26px">${pick(['참 잘했어요!','멋지게 해냈어요!','한자 박사가 되어 가요!'])}</h2><p>${detail}</p><p class="xp">+${g.xp}점</p>${g.total&&g.correct<g.total?'<p class="muted" style="font-size:14px">틀린 글자는 복습 상자에 넣어 두었어요. 다음에 다시 만나요!</p>':''}</div>
+    ${g.fromAdv?`<button class="btn big" data-act="afterGame">마무리하러 가기 →</button><button class="btn ghost" data-act="advGames">다른 게임도 할래요</button>`:`<button class="btn big" data-act="startGame" data-id="${g.type}">한 판 더!</button><button class="btn ghost" data-act="toGames">다른 게임 고르기</button>`}`;}
+  else if(g.type==='memory'){body=`${turnHTML()}<p class="muted">한자와 뜻·소리가 짝꿍이에요. 같은 짝을 찾아 뒤집어요!</p>
+    <div class="mgrid">${g.cards.map((c,i)=>`<button class="mcard" data-act="mflip" data-i="${i}" aria-label="카드 ${i+1}"><span class="back" aria-hidden="true">🐲</span><span class="front ${c.k}">${c.html}</span></button>`).join('')}</div>
+    <p class="muted" style="text-align:center">뒤집은 횟수 <b id="mmoves">${g.moves}</b></p>`;}
+  else if(g.type==='bingo'){const t=g.cells[g.order[g.ci]];
+    body=`${turnHTML()}<div class="card callcard"><button class="say big" data-act="bsay" aria-label="다시 듣기">🔊</button><div><b class="disp" style="font-size:20px">잘 듣고 빙고판에서 찾아요 (${g.ci+1}/9)</b><br>${g.showText?`<span class="calltext">"${itemSay(t)}"</span>`:`<button class="link" data-act="bshow">글자로 보기</button>`}</div></div>
+    <div class="bgrid">${g.cells.map((it,i)=>`<button class="bcell ${g.st[i]?'st':''} ${g.shake===i?'shake':''}" data-act="bpick" data-i="${i}"><span class="han ${lenCls(itemLabel(it))}">${itemLabel(it)}</span>${g.st[i]?'<i class="stamp">🐾</i>':''}</button>`).join('')}</div>
+    <p class="bmsg">빙고 ${g.lines}줄!</p>`;}
+  else if(g.type==='assemble'){const o=g.rounds[g.ri];// 조각 아래 뜻·음은 처음엔 숨기고, 제자리에 놓았거나 잘못 고른 조각에만 보여 줌
+    body=`${turnHTML()}<div class="card asm"><div class="qsub">${g.ri+1}/${g.rounds.length} · 글자 조각을 차례대로 눌러 낱말을 만들어요</div><div class="ameaning">${o.m}</div>
+      <div class="aread"><span class="disp">${o.r}</span><button class="say" data-act="say" data-t="${esc(o.r)}" aria-label="듣기">🔊</button></div>
+      <div class="slots">${[...o.w].map((c,i)=>`<span class="slot paper">${g.slots[i]?`<b class="han">${g.slots[i]}</b><small>${hs(g.slots[i])}</small>`:''}</span>`).join('')}</div>
+      ${g.rdone?`<div class="fb good"><b class="disp">${pick(PRAISE)}</b><small>${brk(o.w)}</small></div><button class="btn big" data-act="anext">다음 →</button>`
+      :`<div class="tray">${g.tray.map((t,k)=>`<button class="ttile ${t.used?'used':''} ${g.shake===k?'shake':''}" data-act="apick" data-k="${k}" ${t.used?'disabled':''}><b class="han">${t.c}</b>${t.tried?`<small>${hs(t.c)}</small>`:''}</button>`).join('')}</div>`}</div>`;}
+  else if(g.type==='board'){const p=cur();
+    const tiles=Array.from({length:g.len},(_,i)=>{const r=Math.floor(i/5),cIdx=r%2?4-i%5:i%5;const star=i%5===4&&i<g.len-1,end=i===g.len-1,start=i===0;
+      return `<div class="btile ${star?'star':''} ${end?'end':''} ${start?'start':''}" style="grid-row:${r+1};grid-column:${cIdx+1}">${start?'출발':end?'🪺':star?'⭐':i+1}${g.pos===i?`<span class="tok">${dragon(Math.max(1,stageOf(p.xp)),col(p))}</span>`:''}</div>`;}).join('');
+    body=`${turnHTML()}<div class="board">${tiles}</div><p class="bmsg">${g.msg||''}</p>
+    ${g.q?quizHTML():`<div class="bctl"><div class="die ${g.rolling?'roll':''}" aria-live="polite">${'⚀⚁⚂⚃⚄⚅'[(g.die||1)-1]}</div><button class="btn big" data-act="roll" ${g.rolling?'disabled':''}>주사위 굴리기</button><p class="muted" style="font-size:14px">⭐ 칸에 서면 한 칸 더! 문제를 맞히면 또 한 칸 더!</p></div>`}`;}
+  else{body=`<p class="muted">${g.qi+1}/${g.qs.length}</p>${quizHTML()}`;}
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="${g.fromAdv?'advGames':'toGames'}">← ${g.fromAdv?'게임 고르기':'놀이터'}</button><span class="chip">${meta.i} ${meta.n}</span></div>${body}</div>`;};
+
+/* ---- 숲(도감) ---- */
+V.forest=()=>{const p=cur(),c=COURSES[p.course];
+  const tile=ch=>{if(!p.learned[ch])return `<div class="ftile seed" title="아직 만나지 않은 한자">🌰</div>`;const e=p.srs['h:'+ch];return `<button class="ftile ${e&&e.b===6?'gold':''}" data-act="detail" data-c="${ch}"><span class="han">${ch}</span><small>${hs(ch)}</small></button>`;};
+  const d=S.detail?HM[S.detail]:null;
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="toHome">← 홈</button></div>
+  <h1 class="h1">🌳 ${esc(p.name)}의 한자 숲</h1>
+  <div class="row"><span class="chip">🌱 배운 한자 ${nL(p)}/50</span><span class="chip">✨ 금빛 나무 ${nM(p)}</span><span class="chip">🍎 낱말 ${nS(p)}</span></div>
+  <p class="muted" style="font-size:15px">복습을 꾸준히 해서 30일 뒤에도 기억하면 금빛 나무가 돼요. 🌰는 아직 만나지 않은 한자예요.</p>
+  ${c.lessons.map(l=>`<div><p class="lesson-h">${l[1]}${l[2]?' · '+l[2]:''}</p><div class="fgrid">${[...l[0]].map(tile).join('')}</div></div>`).join('')}
+  ${d?detailSheet(p,d):''}</div>`;};
+function detailSheet(p,h){const e=p.srs['h:'+h.c];
+  return `<div class="ov" data-act="closeDetail"><div class="sheet" data-stop="1"><div class="sheet-h"><h2>${h.hun} ${h.eum}</h2><button class="x" data-act="closeDetail" aria-label="닫기">×</button></div>
+  <div class="dhan paper han">${h.c}</div>
+  <div class="row" style="justify-content:center"><button class="say big" data-act="say" data-t="${esc(hs(h.c))}">🔊</button><span class="muted">${h.s}획 · ${p.learned[h.c]} 배움</span></div>
+  ${e?(e.b===6?`<div class="boxline">✨ 내 것이 된 한자예요!</div>`:`<div class="boxline">복습 상자 ${[1,2,3,4,5].map(b=>`<i class="${b<=e.b?'on':''}"></i>`).join('')} 다음 복습 ${e.due}</div>`):''}
+  <p class="story">${h.o}</p>${h.n?`<p class="note">💡 ${h.n}</p>`:''}
+  <p class="lesson-h">'${h.c}' 씨앗에서 열린 낱말</p><div class="words">${h.words.map(o=>wordCard(o,h.c)).join('')}</div>
+  ${RELATED[h.c].length?`<p class="lesson-h">다른 낱말 속 '${h.c}'</p><div class="related" style="justify-content:flex-start">${RELATED[h.c].map(o=>`<span class="rchip"><span class="han">${o.w}</span>${o.r}</span>`).join('')}</div>`:''}
+  </div></div>`;}
+
+/* ---- 배지 ---- */
+V.badges=()=>{const p=cur();
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="toHome">← 홈</button></div><h1 class="h1">🏅 ${esc(p.name)}의 배지</h1>
+  <p class="muted">친구와 비교하지 않아요. 어제의 나보다 한 걸음 더 가면 배지가 생겨요.</p>
+  <div class="bdgrid">${BADGES.map(b=>{const got=p.badges[b.id];return `<div class="bd ${got?'':'off'}"><span class="ic">${b.i}</span><b>${b.n}</b><small>${got?got+' 받음':b.d}</small></div>`;}).join('')}</div></div>`;};
+
+/* ---- 부모 확인 / 리포트 ---- */
+V.gate=()=>{const g=S.gate;
+  return `<div class="wrap"><div class="topbar"><button class="back" data-act="toHome">← 홈</button></div>
+  <div class="card gatebox"><h1 class="h1">어른 확인</h1><p class="muted">부모님 리포트는 어른이 보는 곳이에요. 아래 문제를 풀어 주세요.</p>
+  <div class="gq">${g.a} × ${g.b} = ?</div><input id="gate-in" class="inp" inputmode="numeric" style="max-width:200px;text-align:center" value="${esc(g.input)}" autocomplete="off" aria-label="답">
+  ${g.err?`<p style="color:var(--coral)">답이 달라요. 다시 계산해 주세요.</p>`:''}<button class="btn" data-act="gateGo">확인</button></div></div>`;};
+V.report=()=>{const p=cur(),t=today(),start=addDays(weekStart(t),-21);
+  const days=Array.from({length:28},(_,i)=>addDays(start,i));
+  const lg=d=>p.log[d]||{sec:0,done:0,newH:0,games:0,rev:0};
+  const wk=Array.from({length:7},(_,i)=>addDays(t,i-6));
+  const wkDays=wk.filter(d=>lg(d).done||lg(d).sec>0).length,wkMin=Math.round(wk.reduce((s,d)=>s+lg(d).sec,0)/60),wkNew=wk.reduce((s,d)=>s+lg(d).newH,0);
+  const boxes=[1,2,3,4,5,6].map(b=>Object.values(p.srs).filter(e=>e.b===b).length),bmax=Math.max(1,...boxes);
+  const weak=Object.entries(p.wrong).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const inf=p.infer.n?Math.round(p.infer.ok/p.infer.n*100):null;
+  const ih=p.inferHist||[],rate=a=>Math.round(a.reduce((s,x)=>s+x[1],0)/a.length*100);
+  let infBlock;
+  if(ih.length<6)infBlock=`<p class="muted">지금까지 뜻 추리 문제를 ${ih.length}개 풀었어요. 6문제 넘게 쌓이면 처음과 최근을 비교해 보여 드려요.</p>`;
+  else{const k=Math.min(10,Math.floor(ih.length/2)),f=rate(ih.slice(0,k)),r=rate(ih.slice(-k)),dd=r-f,ws=weekStart(t);
+    const weeks=Array.from({length:8},(_,i)=>{const s=addDays(ws,-7*(7-i)),e=addDays(s,6),it=ih.filter(x=>x[0]>=s&&x[0]<=e);return{label:(+s.slice(5,7))+'/'+(+s.slice(8)),n:it.length,rate:it.length?rate(it):0};});
+    infBlock=`<div class="cmp"><div><small>처음 ${k}문제</small><b>${f}%</b></div><span class="arrow ${dd>0?'up':dd<0?'down':''}">${dd>0?'▲':dd<0?'▼':'='} ${Math.abs(dd)}%p</span><div><small>최근 ${k}문제</small><b>${r}%</b></div></div>
+    <p class="lesson-h">주별 정답률 (최근 8주)</p>
+    <div class="wchart">${weeks.map(w=>`<div class="wcol" title="${w.label} 주 · ${w.n}문제"><span class="wv">${w.n?w.rate+'%':'-'}</span><div class="wbar"><i style="height:${w.rate}%"></i></div><small>${w.label}</small><small class="muted">${w.n}문제</small></div>`).join('')}</div>`;}
+  infBlock+=`<p class="muted" style="font-size:13px">처음 보는 낱말의 뜻을 아는 글자로 짐작하는 문제예요. 문제마다 어렵기가 달라서 한 주가 아니라 몇 주의 흐름으로 봐 주세요.</p>`;
+  const lvl=d=>{const l=lg(d),m=l.sec/60;if(!l.done&&!l.sec)return '';return m>=10?'l3':m>=5?'l2':'l1';};
+  const label=k=>{const it=keyItem(k);return it.t==='h'?`<span class="han">${it.c}</span> ${hs(it.c)}`:`<span class="han">${it.w}</span> ${WM[it.w]?WM[it.w].r:''}`;};
+  const praise=wkDays>=5?`"이번 주에 ${wkDays}일이나 공부했구나! 정말 꾸준해."`:nS(p)>=10?`"벌써 한자어를 ${nS(p)}개나 알게 됐네! 어떤 낱말이 제일 재미있었어?"`:nL(p)?`"오늘 배운 한자로 낱말 하나 만들어 볼래?"`:`"오늘 묵룡 알을 같이 깨워 볼까?"`;
+  return `<div class="wrap rep"><div class="topbar"><button class="back" data-act="toHome">← 홈</button><span class="chip">📊 부모님 리포트</span></div>
+  <h1 class="h1">${esc(p.name)} · ${p.grade}학년</h1>
+  <div class="stats">
+    <div class="stat"><small>최근 7일 학습일</small><b>${wkDays}/7일</b></div>
+    <div class="stat"><small>최근 7일 학습 시간</small><b>${wkMin}분</b></div>
+    <div class="stat"><small>연속 / 최고 기록</small><b>${p.streak}일 / ${p.best}일</b></div>
+    <div class="stat"><small>배운 한자 (이번 주 +${wkNew})</small><b>${nL(p)}/50자</b></div>
+    <div class="stat"><small>만난 한자어</small><b>${nS(p)}개</b></div>
+    <div class="stat"><small>뜻 추리 정답률 (전체 ${p.infer.n}문제)</small><b>${inf==null?'-':inf+'%'}</b></div>
+  </div>
+  <section class="card rep"><h2>뜻 추리 정답률 변화 (어휘·문해력)</h2>${infBlock}</section>
+  <section class="card rep"><h2>학습 달력 (4주)</h2>
+    <div class="cal">${['월','화','수','목','금','토','일'].map(w=>`<span class="wd">${w}</span>`).join('')}${days.map(d=>`<span class="d ${lvl(d)} ${d>t?'fut':''} ${d===t?'today':''}" title="${d} · ${Math.round(lg(d).sec/60)}분">${+d.slice(8)}</span>`).join('')}</div>
+    <div class="legend"><span><i style="background:var(--surface2)"></i>안 함</span><span><i style="background:var(--leaf-soft)"></i>5분 미만</span><span><i style="background:color-mix(in srgb,var(--leaf) 55%,var(--surface))"></i>5~10분</span><span><i style="background:var(--leaf)"></i>10분 이상</span></div>
+    <p class="muted" style="font-size:13px">학습 시간은 배우기·게임 화면에서 실제로 화면을 누르며 활동한 시간만 셉니다.</p></section>
+  <section class="card rep"><h2>코스 진도</h2>${['k12','g8'].map(k=>{const pr=courseProg(p,k);return `<div><div class="row" style="justify-content:space-between"><span>${COURSES[k].name}</span><span class="muted">${pr.done}/${pr.total} 단원</span></div><div class="pbar"><i style="width:${Math.round(pr.done/pr.total*100)}%"></i></div></div>`;}).join('')}</section>
+  <section class="card rep"><h2>기억 상자 (망각곡선 복습)</h2><p class="muted" style="font-size:14px">맞히면 다음 상자로 가서 1일→3일→7일→14일→30일 뒤에 다시 나와요. 마지막 상자까지 통과하면 "내 것이 된 한자·낱말"이에요.</p>
+    <div class="hbars">${boxes.map((n,i)=>`<div class="hb"><span>${i<5?(i+1)+'번 상자':'✨ 내 것'}</span><span class="tr"><i class="${i===5?'gold':''}" style="width:${n/bmax*100}%"></i></span><span>${n}</span></div>`).join('')}</div></section>
+  <section class="card rep weak"><h2>자주 틀리는 글자 TOP 5</h2>${weak.length?`<ul>${weak.map(([k,n])=>`<li><span>${label(k)}</span><span class="muted">${n}번</span></li>`).join('')}</ul><p class="muted" style="font-size:14px">이 글자들을 함께 소리 내어 읽거나, 생활 속에서 찾아보면 도움이 돼요.</p>`:'<p class="muted">아직 틀린 기록이 없어요.</p>'}</section>
+  <section class="praise"><b class="disp">오늘 건네 볼 한마디</b><p>${praise}</p></section>
+  <section class="card rep"><h2>기록 백업</h2>
+    <p class="muted" style="font-size:14px">모든 프로필의 학습 기록을 파일 하나로 저장해요. 브라우저 기록을 지웠거나 다른 기기·다른 주소로 옮길 때 이 파일로 되살릴 수 있어요.</p>
+    <div class="row"><button class="btn ghost sm" data-act="backup">💾 기록 파일로 저장</button><button class="btn ghost sm" data-act="restorePick">📂 기록 파일 불러오기</button></div>
+    <input type="file" id="restore-in" accept=".json,application/json" hidden>
+    ${restoreBox()}
+  </section>
+  </div>`;};
+
+function render(){const app=document.getElementById('app');app.innerHTML=V[S.screen]();
+  const p=cur();document.body.classList.toggle('g-low',!!(p&&p.grade<=2&&S.screen!=='profiles'&&S.screen!=='form'));
+  if(S.after){const f=S.after;S.after=null;f();}}
+function go(screen,extra){S.screen=screen;Object.assign(S,extra||{});render();window.scrollTo(0,0);}
+
+/* ================= 동작 ================= */
+const A={};
+A.say=d=>speak(d.t);
+A.toProfiles=()=>go('profiles',{manage:false,delId:null,restore:null});
+A.toHome=()=>{AUD.req++;audStop();if(TTS.ok){try{speechSynthesis.cancel();}catch(e){}}go('home',{modal:null,detail:null});};
+A.pick=d=>{if(S.manage)return;DB.current=d.id;checkDaily(cur());go('home');};
+A.manage=()=>{S.manage=!S.manage;S.delId=null;render();};
+A.delP=d=>{S.delId=d.id;render();};
+A.delNo=()=>{S.delId=null;render();};
+A.delYes=d=>{DB.profiles=DB.profiles.filter(p=>p.id!==d.id);if(DB.current===d.id)DB.current=null;S.delId=null;if(!DB.profiles.length)S.manage=false;save();render();};
+A.newP=()=>go('form',{form:{name:'',grade:1,color:'green',course:'k12'}});
+A.editP=d=>{const p=DB.profiles.find(x=>x.id===d.id);go('form',{form:{id:p.id,name:p.name,grade:p.grade,color:p.color,course:p.course}});};
+A.fgrade=d=>{const g=+d.v;S.form.grade=g;if(!S.form.id)S.form.course=g<=2?'k12':'g8';render();};
+A.fcolor=d=>{S.form.color=d.v;render();};
+A.fcourse=d=>{S.form.course=d.v;render();};
+A.fsave=()=>{const f=S.form;if(!f.name.trim())return;
+  if(f.id){const p=DB.profiles.find(x=>x.id===f.id);Object.assign(p,{name:f.name.trim(),grade:f.grade,color:f.color,course:f.course});save();go('profiles',{manage:false});}
+  else{const p=newProfile(f);DB.profiles.push(p);DB.current=p.id;save();go('home');toast('🥚 묵룡 알을 받았어요! 한자를 배우면 깨어나요');}};
+A.openCourse=()=>{S.modal='course';render();};
+A.closeModal=(d,el,ev)=>{S.modal=null;render();};
+A.setCourse=d=>{cur().course=d.v;S.modal=null;save();render();toast('코스를 바꿨어요: '+COURSES[d.v].name);};
+A.together=()=>{const p=cur();p.together=!p.together;save();render();};
+A.toGames=()=>go('games');
+A.toForest=()=>go('forest',{detail:null});
+A.toBadges=()=>go('badges');
+A.detail=d=>{S.detail=d.c;render();speak(hs(d.c));};
+A.closeDetail=()=>{S.detail=null;render();};
+A.toGate=()=>go('gate',{restore:null,gate:{a:12+Math.floor(Math.random()*8),b:3+Math.floor(Math.random()*7),input:'',err:false}});
+A.gateGo=()=>{const g=S.gate,v=parseInt((document.getElementById('gate-in')||{}).value,10);if(v===g.a*g.b)go('report');else{g.err=true;g.input='';render();}};
+
+/* 모험 흐름 */
+A.startAdv=()=>{const p=cur(),rev=dueKeys(p).slice(0,8),nn=nextNew(p,3);
+  S.adv={phase:rev.length?'review':(nn.cs.length?'learn':'game'),rev,ri:0,newC:nn.cs,title:nn.title,hi:0,page:0,sq:[],si:0,learned:[],xp:0,revOk:0,gamePlayed:false,startStage:stageOf(p.xp),endStage:stageOf(p.xp),applied:false};
+  S.more=false;S.turn=0;S.wst={};
+  if(S.adv.phase==='review')setQ(reviewQ(rev[0]),ctxRev());
+  go('adv');
+  if(S.adv.phase==='learn')setTimeout(()=>speak(hs(S.adv.newC[0])),1500);};
+function reviewQ(k){const it=keyItem(k);const ks=it.t==='h'?['h2m','m2h']:['w2m','m2w','sent'];if(CAN_SAY)ks.push('listen');return makeQ(it,pick(ks));}
+function ctxRev(){return{onAnswer(ok){const p=cur(),ad=S.adv,k=ad.rev[ad.ri];srsAnswer(p,k,ok);L(p).rev++;if(ok){ad.revOk++;p.revOk=(p.revOk||0)+1;p.xp+=2;ad.xp+=2;}save();},
+  onNext(){const ad=S.adv;ad.ri++;S.turn++;if(ad.ri<ad.rev.length)setQ(reviewQ(ad.rev[ad.ri]),ctxRev());else{ad.phase=ad.newC.length?'learn':'game';if(ad.phase==='learn')setTimeout(()=>speak(hs(ad.newC[0])),1500);}render();window.scrollTo(0,0);}};}
+function commitLearn(){const p=cur(),ad=S.adv,h=HM[ad.newC[ad.hi]],shown=h.words.slice(0,S.more?99:nWords(p));
+  if(!p.learned[h.c]){p.learned[h.c]=today();srsAdd(p,'h:'+h.c);p.xp+=10;ad.xp+=10;L(p).newH++;ad.learned.push(h.c);}
+  shown.forEach(o=>{if(!p.seen[o.w]){p.seen[o.w]=today();srsAdd(p,'w:'+o.w);}});save();}
+function sentQs(){const p=cur(),h=HM[S.adv.newC[S.adv.hi]],shown=h.words.slice(0,S.more?99:nWords(p)).filter(o=>o.s);return shuffle(shown).slice(0,2).map(o=>makeQ({t:'w',w:o.w},'sent'));}
+function ctxSent(){return{onAnswer(ok){if(ok){cur().xp+=1;S.adv.xp+=1;}else S.adv.sentMiss=true;save();},onNext(){const ad=S.adv;ad.si++;if(ad.si<ad.sq.length){setQ(ad.sq[ad.si],ctxSent());render();}else nextHanzi();}};}
+function nextHanzi(){const ad=S.adv;ad.hi++;ad.page=0;S.more=false;S.wst={};if(ad.hi>=ad.newC.length)ad.phase='game';render();window.scrollTo(0,0);if(ad.phase==='learn')setTimeout(()=>speak(hs(ad.newC[ad.hi])),1500);}
+A.lnext=()=>{const ad=S.adv;
+  if(ad.page===2){commitLearn();ad.sq=sentQs();ad.si=0;if(!ad.sq.length){nextHanzi();return;}ad.page=3;setQ(ad.sq[0],ctxSent());render();window.scrollTo(0,0);return;}
+  ad.page++;if(ad.page===1)S.after=setupCanvas;render();window.scrollTo(0,0);};
+A.more=()=>{S.more=true;render();};
+/* 기록 백업·되살리기 (부모님 리포트) */
+A.backup=async()=>{const data=JSON.stringify({app:'mukryong-hanja',v:1,savedAt:new Date().toLocaleString('ko-KR'),db:DB}),filename='묵룡한자숲_기록_'+today()+'.json';
+  // claude.ai 안에서는 downloads 기능으로, 따로 올린 앱에서는 브라우저 다운로드로 저장
+  const dl=window.claude&&typeof window.claude.use==='function'?await window.claude.use('downloads').catch(()=>null):null;
+  if(dl){try{await dl.save({filename,data});toast('💾 기록 파일을 저장했어요');}catch(e){if(e&&e.code!=='declined')toast('이 화면에서는 저장할 수 없어요');}return;}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);toast('💾 기록 파일을 저장했어요');}
+  catch(e){toast('이 화면에서는 저장할 수 없어요');}};
+A.restorePick=()=>{const el=document.getElementById('restore-in');if(!el)return;el.value='';
+  el.onchange=()=>{const f=el.files&&el.files[0];if(!f)return;f.text().then(t=>{const d=JSON.parse(t);
+    if(!d||d.app!=='mukryong-hanja'||!d.db||!Array.isArray(d.db.profiles)||!d.db.profiles.length)throw 0;
+    S.restore=d;render();}).catch(()=>toast('묵룡 한자 숲 기록 파일이 아니에요'));};el.click();};
+A.restoreNo=()=>{S.restore=null;render();};
+function restoreBox(){return S.restore?`<div class="confirm"><span>파일(${esc(S.restore.savedAt||'')})에 있는 프로필 <b>${S.restore.db.profiles.map(x=>esc(x.name)).join(', ')}</b>의 기록으로 바꿔요. 같은 프로필의 지금 기록은 파일 내용으로 덮어써요.</span><div class="prow"><button class="btn sm" data-act="restoreYes">되살리기</button><button class="btn ghost sm" data-act="restoreNo">그만두기</button></div></div>`:'';}
+A.restoreYes=()=>{const d=S.restore;S.restore=null;if(!d)return;
+  d.db.profiles.forEach(np=>{const i=DB.profiles.findIndex(p=>p.id===np.id);if(i>=0)DB.profiles[i]=np;else if(DB.profiles.length<6)DB.profiles.push(np);});
+  if(!cur())DB.current=d.db.profiles[0].id;save();try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}syncUp();
+  toast('✅ 기록을 되살렸어요');go('profiles',{manage:false});};
+A.wtap=d=>{const w=d.w,o=WM[w];if(!o)return;if(!S.wst)S.wst={};const st=S.wst[w]||0;speak(o.r);if(st<2){S.wst[w]=st+1;const y=window.scrollY;render();window.scrollTo(0,y);}};
+A.replayStroke=()=>{const el=document.getElementById('sorder');if(el)el.innerHTML=strokeSVG(S.adv.newC[S.adv.hi],true);};
+A.clearCv=()=>{clearTimeout(TR.badT);Object.assign(TR,{done:0,miss:0,paths:[],bad:null});traceDraw();traceMark();
+  if(TR.c){traceMsg('처음부터 다시 써요. 노란 1번 동그라미에서 시작해요.');const b=document.getElementById('writeDone');if(b){b.disabled=true;b.textContent='✏️ 끝까지 쓰면 넘어갈 수 있어요';}}};
+A.qans=d=>{if(S.qa!=null)return;const i=+d.i,ok=S.q.opts[i].ok;S.qa=i;if(S.q.afterSay)speak(S.q.afterSay);else if(S.q.say&&!ok)speak(S.q.say);S.qctx.onAnswer(ok);render();};
+A.qnext=()=>S.qctx.onNext();
+A.startGame=d=>startGame(d.id,!!d.adv||!!(S.g&&S.g.fromAdv&&S.screen==='game'));
+A.advGames=()=>{S.adv.phase='game';go('adv');};
+// 뜻 추리 후보: 아직 안 본 낱말 중 ① 모든 글자를 배운 것 ② 배운 글자가 하나라도 든 것 ③ 나머지 순서 (모르는 글자는 뜻·음 힌트로 보여 줌)
+function inferCands(p,n){const kn=c=>!!p.learned[c];const pool=[...INFW,...WORDS].filter(o=>!p.inferDone[o.w]&&!p.seen[o.w]);
+  const pure=shuffle(pool.filter(o=>[...o.w].every(kn))),part=shuffle(pool.filter(o=>[...o.w].some(kn)&&![...o.w].every(kn))),rest=shuffle(pool.filter(o=>![...o.w].some(kn)));
+  return [...pure,...part,...rest].slice(0,n);}
+function makeInferQ(o){const opts=shuffle([o,...sample([...WORDS,...INFW].filter(x=>x.w!==o.w&&x.m!==o.m),3)]);
+  return{key:'w:'+o.w,inferW:o,prompt:`<div class="qbig han ${lenCls(o.w)}">${o.w}</div><div class="hint">${[...o.w].map(c=>`<span><b class="han">${c}</b> = ${hs(c)}</span>`).join('<span>+</span>')}</div><div class="qsub">이 낱말의 뜻은 무엇일까요?</div>`,
+    opts:opts.map(x=>({html:`<span>${x.m}</span>`,ok:x===o})),answerText:o.m,explain:brk(o.w)+' → '+o.r+': '+o.m,afterSay:o.r};}
+// 날짜별 기록: 하루 합계(log.iN/iOk)와 문제별 기록(inferHist: [날짜, 정답 1/0])
+function recordInfer(p,o,ok){p.infer.n++;if(ok)p.infer.ok++;const l=L(p);l.iN=(l.iN||0)+1;if(ok)l.iOk=(l.iOk||0)+1;
+  if(!p.inferHist)p.inferHist=[];p.inferHist.push([today(),ok?1:0]);if(p.inferHist.length>1000)p.inferHist.splice(0,p.inferHist.length-1000);
+  p.inferDone[o.w]=1;if(!o.inf&&!p.seen[o.w]){p.seen[o.w]=today();srsAdd(p,'w:'+o.w);}save();}
+A.afterGame=()=>{const p=cur(),ad=S.adv;ad.infQ=inferCands(p,p.grade<=2?2:3);ad.ii=0;
+  if(ad.infQ.length){ad.phase='infer';setQ(makeInferQ(ad.infQ[0]),ctxInfer());}
+  else finishAdv();
+  go('adv');};
+function ctxInfer(){return{onAnswer(ok){const p=cur(),ad=S.adv;if(ok){p.xp+=3;ad.xp+=3;}recordInfer(p,S.q.inferW,ok);},
+  onNext(){const ad=S.adv;ad.ii++;S.turn++;if(ad.ii<ad.infQ.length)setQ(makeInferQ(ad.infQ[ad.ii]),ctxInfer());else finishAdv();render();window.scrollTo(0,0);}};}
+function ctxInferGame(){return{onAnswer(ok){if(ok)S.g.correct++;recordInfer(cur(),S.q.inferW,ok);},
+  onNext(){const g=S.g;g.qi++;S.turn++;if(g.qi<g.qs.length){setQ(g.qs[g.qi],ctxInferGame());render();}else endGame();}};}
+function finishAdv(){const p=cur(),ad=S.adv;
+  if(!ad.applied){ad.applied=true;const t=today();
+    if(p.lastDone!==t){p.streak=p.lastDone===addDays(t,-1)?p.streak+1:1;p.lastDone=t;p.best=Math.max(p.best||0,p.streak);}
+    p.adv=(p.adv||0)+1;L(p).done++;p.xp+=10;ad.xp+=10;if(p.together)p.togetherDone=(p.togetherDone||0)+1;
+    ad.newBadges=checkBadges(p,true);ad.endStage=stageOf(p.xp);save();
+    setTimeout(()=>speak(ad.endStage>ad.startStage?'와! 묵룡이 자랐어요!':'오늘의 모험 완료! 정말 잘했어요!'),300);}
+  ad.phase='finish';}
+
+/* 짝꿍 카드 */
+A.mflip=(d,el)=>{const g=S.g,i=+d.i,c=g.cards[i];if(g.lock||c.up||c.done)return;c.up=true;el.classList.add('up');speak(c.say);g.open.push(i);
+  if(g.open.length===2){g.moves++;const m=document.getElementById('mmoves');if(m)m.textContent=g.moves;const [a,b]=g.open.map(j=>g.cards[j]);
+    if(a.pair===b.pair){a.done=b.done=true;g.open.forEach(j=>{const e=document.querySelector(`.mcard[data-i="${j}"]`);if(e)e.classList.add('done');});g.open=[];g.matched++;g.correct++;g.total=g.pairs;S.turn++;
+      if(g.matched===g.pairs)setTimeout(endGame,700);}
+    else{g.lock=true;setTimeout(()=>{g.open.forEach(j=>{g.cards[j].up=false;const e=document.querySelector(`.mcard[data-i="${j}"]`);if(e)e.classList.remove('up');});g.open=[];g.lock=false;S.turn++;const t=document.querySelector('.turn');if(t){const p=cur();t.textContent=S.turn%2?'🧑 어른 차례':'🧒 '+p.name+' 차례';}},950);}}};
+/* 빙고 */
+A.bsay=()=>bingoSay();
+A.bshow=()=>{S.g.showText=true;render();};
+A.bpick=d=>{const g=S.g,i=+d.i;if(g.st[i]||g.done)return;const target=g.order[g.ci];
+  if(i===target){g.st[i]=true;g.correct++;g.ci++;speak(itemSay(g.cells[i]));const ln=bingoLines(g.st);if(ln>g.lines){g.lines=ln;toast('🎉 빙고 '+ln+'줄!');}
+    g.showText=!CAN_SAY;S.turn++;if(g.ci>=g.cells.length){render();setTimeout(endGame,600);return;}render();setTimeout(bingoSay,1100);}
+  else{g.shake=i;g.showText=true;if(!g.missed)g.missed={};if(!g.missed[target]){g.missed[target]=1;g.correct=Math.max(0,g.correct-0);srsAnswer(cur(),itemKey(g.cells[target]),false);g.wrongCount=(g.wrongCount||0)+1;}save();render();g.shake=null;}};
+/* 글자 조립소 */
+A.apick=d=>{const g=S.g,k=+d.k,o=g.rounds[g.ri],chars=[...o.w],t=g.tray[k];if(t.used||g.rdone)return;
+  if(t.c===chars[g.slots.length]){t.used=true;g.slots.push(t.c);if(g.slots.length===chars.length){g.rdone=true;if(!g.wrongThis)g.correct++;speak(o.r);}}
+  else{g.shake=k;t.tried=true;if(!g.wrongThis){g.wrongThis=true;srsAnswer(cur(),'w:'+o.w,false);save();}}
+  render();g.shake=null;};
+A.anext=()=>{const g=S.g;g.ri++;S.turn++;if(g.ri>=g.rounds.length){endGame();return;}asmRound();render();};
+/* 주사위 숲길 */
+A.roll=()=>{const g=S.g;if(g.rolling||g.q)return;g.rolling=true;g.msg='데구르르…';render();
+  setTimeout(()=>{const n=1+Math.floor(Math.random()*6);g.die=n;g.rolling=false;g.pos=Math.min(g.pos+n,g.len-1);
+    if(g.pos===g.len-1){g.msg='🪺 묵룡 둥지에 도착했어요!';render();setTimeout(endGame,900);return;}
+    const star=g.pos%5===4;g.star=star;g.msg=`${n}칸 앞으로!${star?' ⭐ 칸이에요!':''} 문제를 풀어요.`;
+    const it=g.items[g.qi%g.items.length];g.qi++;g.q=true;setQ(makeQ(it,randKind(it)),ctxBoard());render();},650);};
+function ctxBoard(){return{onAnswer(ok){const g=S.g;g.total++;g.lastOk=ok;if(ok)g.correct++;else srsAnswer(cur(),S.q.key,false);save();},
+  onNext(){const g=S.g,move=(g.lastOk?1:0)+(g.star?1:0);g.q=false;S.turn++;g.pos=Math.min(g.pos+move,g.len-1);
+    g.msg=move?`${g.lastOk?'정답 보너스':''}${g.lastOk&&g.star?' + ':''}${g.star?'⭐ 보너스':''}로 ${move}칸 더!`:'다시 주사위를 굴려요!';
+    if(g.pos===g.len-1){g.msg='🪺 묵룡 둥지에 도착했어요!';render();setTimeout(endGame,900);return;}render();}};}
+
+/* 따라 쓰기 캔버스 */
+// 획순 자료가 있는 글자는 한 획을 쓸 때마다 몇 번 획과 가장 닮았는지 보고, 차례가 아니면 빨간 글씨로 알려 줌
+const TR={c:null,done:0,paths:[],bad:null,badT:null};
+function setupCanvas(){const cv=document.getElementById('cv');if(!cv)return;const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);
+  x.lineCap='round';x.lineJoin='round';x.lineWidth=Math.max(10,r.width/20);x.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--leaf').trim()||'#3B9459';x.fillStyle=x.strokeStyle;
+  const c=S.adv&&S.adv.newC[S.adv.hi];clearTimeout(TR.badT);Object.assign(TR,{c:STK[c]?c:null,done:0,miss:0,paths:[],bad:null,badT:null});traceMark();
+  let on=false,last=null,pts=[];const pos=e=>{const b=cv.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};};
+  cv.addEventListener('pointerdown',e=>{if(TR.bad){clearTimeout(TR.badT);TR.bad=null;traceDraw();}on=true;last=pos(e);pts=[last];try{cv.setPointerCapture(e.pointerId);}catch(_){}x.beginPath();x.arc(last.x,last.y,x.lineWidth/2,0,Math.PI*2);x.fill();e.preventDefault();});
+  cv.addEventListener('pointermove',e=>{if(!on)return;const p=pos(e);x.beginPath();x.moveTo(last.x,last.y);x.lineTo(p.x,p.y);x.stroke();last=p;pts.push(p);e.preventDefault();});
+  const stop=()=>{if(!on)return;on=false;traceCheck(pts);};cv.addEventListener('pointerup',stop);cv.addEventListener('pointercancel',stop);}
+// 선을 같은 간격의 점 n개로 고름
+function resample(pts,n){const d=[0];for(let i=1;i<pts.length;i++)d.push(d[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  const L=d[d.length-1];if(!L)return Array(n).fill(pts[0]);const out=[];let j=0;
+  for(let k=0;k<n;k++){const t=L*k/(n-1);while(j<d.length-2&&d[j+1]<t)j++;const s=d[j+1]-d[j]||1,u=Math.min(1,(t-d[j])/s);out.push([pts[j][0]+(pts[j+1][0]-pts[j][0])*u,pts[j][1]+(pts[j+1][1]-pts[j][1])*u]);}
+  return out;}
+const avgDist=(a,b)=>a.reduce((s,p,i)=>s+Math.hypot(p[0]-b[i][0],p[1]-b[i][1]),0)/a.length;
+function medianOf(c,i){const m=STK[c].m[i],o=[];for(let k=0;k<m.length;k+=2)o.push([m[k],900-m[k+1]]);return o;}
+function traceCheck(raw){if(!TR.c)return;const d=STK[TR.c],n=d.s.length;if(TR.done>=n)return;
+  const cv=document.getElementById('cv'),W=cv.clientWidth,H=cv.clientHeight;
+  // 화면 좌표 → 획순 그림 좌표 (.stroke가 칸 안쪽 6%에 88% 크기로 놓임)
+  const u=raw.map(p=>[(p.x/W-.06)/.88*1024,(p.y/H-.06)/.88*1024]);
+  const len=u.slice(1).reduce((s,p,i)=>s+Math.hypot(p[0]-u[i][0],p[1]-u[i][1]),0);
+  if(len<12&&n>0&&raw.length<3){traceDraw();return;} // 살짝 닿은 것은 획으로 치지 않음
+  const us=resample(u,16),usR=us.slice().reverse(),LIM=210;
+  // 길이가 너무 다르면(마구 그은 선 등) 그 획으로 보지 않음
+  const mlen=m=>m.slice(1).reduce((s,p,i)=>s+Math.hypot(p[0]-m[i][0],p[1]-m[i][1]),0),fits=i=>{const m=mlen(medianOf(TR.c,i));return len>m*.35-60&&len<m*2.5+250;}; // 짧은 획은 손떨림을 넉넉히 봐줌
+  let best=-1,bd=1e9;for(let i=TR.done;i<n;i++){if(!fits(i))continue;const dd=avgDist(us,resample(medianOf(TR.c,i),16));if(dd<bd){bd=dd;best=i;}}
+  const exp=resample(medianOf(TR.c,TR.done),16),de=fits(TR.done)?avgDist(us,exp):1e9,dr=fits(TR.done)?avgDist(usR,exp):1e9,next=TR.done+1;
+  // 지금 차례인 획을 우선으로 봄: 다른 획이 확실히 더 가까울 때만(거리 절반 남짓) 순서 틀림으로 판단
+  const clearlyOther=best!==TR.done&&bd<150&&bd<de*.55;
+  if(de<LIM&&!clearlyOther){traceAccept(raw);return;}
+  // 같은 획을 세 번 틀리면 막히지 않도록 묵룡이 그 획을 대신 그어 줌
+  if(++TR.miss>=3){const help=medianOf(TR.c,TR.done).map(([a,b])=>({x:(a/1024*.88+.06)*W,y:(b/1024*.88+.06)*H}));
+    traceAccept(help,`괜찮아요! 묵룡이 ${next}번 획을 같이 써 줬어요.`);return;}
+  let msg;
+  if(dr<LIM&&dr<de*.7&&!clearlyOther)msg=`앗, 획을 거꾸로 썼어요! ${next}번 획은 노란 ${next}번 동그라미가 있는 쪽에서 시작해요.`;
+  else if(clearlyOther)msg=`앗, 순서가 달라요! 방금 쓴 건 ${best+1}번 획이에요. 지금은 ${next}번 획을 쓸 차례예요.`;
+  else msg=`앗, ${next}번 획과 모양이 달라요. 노란 ${next}번 동그라미에서 시작해서 다시 써 봐요.`;
+  TR.bad=raw;traceDraw();traceMark(true);traceMsg(msg,'bad');
+  TR.badT=setTimeout(()=>{TR.bad=null;traceDraw();},1400);}
+function traceAccept(path,pre){const n=STK[TR.c].s.length;TR.paths.push(path);TR.done++;TR.miss=0;TR.bad=null;traceDraw();traceMark();
+  const all=TR.done>=n;traceMsg(all?`🎉 ${n}획을 모두 차례대로 썼어요! 참 잘했어요.`:`${pre?pre+' ':'좋아요! '}이제 ${TR.done+1}번 획을 써요.`,'ok');
+  const b=document.getElementById('writeDone');if(b){b.disabled=!all;b.textContent=all?'다 썼어요 ✓':'✏️ 끝까지 쓰면 넘어갈 수 있어요';}
+  if(all)speak('참 잘했어요!');}
+// 맞게 쓴 획은 초록, 방금 틀린 획은 빨강으로 다시 그림
+function traceDraw(){const cv=document.getElementById('cv');if(!cv)return;const x=cv.getContext('2d'),dpr=window.devicePixelRatio||1;
+  x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);x.setTransform(dpr,0,0,dpr,0,0);
+  const cs=getComputedStyle(document.documentElement),line=(p,col)=>{x.strokeStyle=x.fillStyle=col;x.beginPath();x.arc(p[0].x,p[0].y,x.lineWidth/2,0,Math.PI*2);x.fill();x.beginPath();x.moveTo(p[0].x,p[0].y);p.forEach(q=>x.lineTo(q.x,q.y));x.stroke();};
+  TR.paths.forEach(p=>line(p,cs.getPropertyValue('--leaf').trim()||'#3B9459'));if(TR.bad)line(TR.bad,cs.getPropertyValue('--coral').trim()||'#E65F4F');
+  x.strokeStyle=x.fillStyle=cs.getPropertyValue('--leaf').trim()||'#3B9459';}
+// 따라 쓰기 칸의 번호: 쓴 획은 흐리게, 다음 획은 크게 깜빡이게 (틀렸을 때는 한 번 더 크게)
+// 번호는 두 겹: 아래 겹(기다리는 번호)과 쓴 선 위에 뜨는 위 겹(지금 쓸 번호)
+function traceMark(shake){document.querySelectorAll('.trace .ghost.svg').forEach(layer=>layer.querySelectorAll('.sn').forEach((g,i)=>{g.classList.toggle('done',i<TR.done);g.classList.toggle('next',i===TR.done);
+  g.classList.remove('nudge');if(shake&&i===TR.done){void g.getBBox();g.classList.add('nudge');}}));}
+function traceMsg(t,kind){const el=document.getElementById('tmsg');if(!el)return;el.textContent=t;el.className='tmsg '+(kind||'');
+  if(kind==='bad'){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}}
+
+/* 이벤트 연결 */
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t)return;
+  if(t.classList.contains('ov')&&e.target!==t)return; // 시트 안쪽 클릭은 닫지 않음
+  if(t.disabled)return;const f=A[t.dataset.act];if(f){e.preventDefault();f(t.dataset,t,e);}});
+document.addEventListener('input',e=>{
+  if(e.target.id==='f-name'&&S.form){S.form.name=e.target.value.slice(0,8);const b=document.getElementById('fsave');if(b)b.disabled=!S.form.name.trim();}
+  if(e.target.id==='gate-in'&&S.gate)S.gate.input=e.target.value;});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){if(e.target.id==='gate-in')A.gateGo();if(e.target.id==='f-name')A.fsave();}});
+
+/* 학습 시간 기록: 배우기·게임 화면에서 최근 1분 안에 활동했을 때만 */
+let lastAct=Date.now();['pointerdown','keydown'].forEach(ev=>document.addEventListener(ev,()=>{lastAct=Date.now();},{passive:true}));
+setInterval(()=>{const p=cur();if(!p||document.hidden||!['adv','game'].includes(S.screen)||Date.now()-lastAct>60000)return;L(p).sec+=15;save();},15000);
+
+/* 시작 */
+load();
+if(DB.profiles.length===1){DB.current=DB.profiles[0].id;checkDaily(cur());S.screen='home';}
+render();
+initCloud();
+</script>
+
+<script>if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
