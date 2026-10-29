@@ -699,7 +699,18 @@ const KEY='mukryong-hanja-v1';
 let DB={v:1,profiles:[],current:null,updatedAt:0};
 function load(){try{const s=localStorage.getItem(KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.profiles))DB=d;}}catch(e){}}
 let saveT=null,syncT=null;
-function save(){DB.updatedAt=Date.now();clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}},250);if(!syncT)syncT=setTimeout(()=>{syncT=null;syncUp();},20000);}
+// 저장 상태: ok=이 기기에 저장할 수 있는지(비공개 모드면 false), at=마지막 저장 시각
+const STORE={ok:true,at:0,persist:null};
+try{localStorage.setItem(KEY+'-t','1');localStorage.removeItem(KEY+'-t');}catch(e){STORE.ok=false;}
+function flush(){clearTimeout(saveT);saveT=null;try{localStorage.setItem(KEY,JSON.stringify(DB));STORE.at=Date.now();}catch(e){STORE.ok=false;}}
+function save(){DB.updatedAt=Date.now();clearTimeout(saveT);saveT=setTimeout(flush,250);if(!syncT)syncT=setTimeout(()=>{syncT=null;syncUp();},20000);}
+// 홈 화면 앱으로 설치한 경우(app/ 빌드에만 manifest가 있음)
+const IS_APP=!!document.querySelector('link[rel="manifest"]');
+const IS_IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const STANDALONE=navigator.standalone===true||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+// 아이패드: 사파리 탭과 홈 화면 앱은 기록을 따로 저장함
+const IOS_TAB=IS_APP&&IS_IOS&&!STANDALONE;
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(v=>{STORE.persist=v;}).catch(()=>{});
 const CLOUD={doc:null,ok:false,busy:false};
 async function initCloud(){
   try{
@@ -717,7 +728,8 @@ async function initCloud(){
   }catch(e){CLOUD.ok=false;}
 }
 async function syncUp(){if(!CLOUD.ok||!CLOUD.doc||CLOUD.busy)return;CLOUD.busy=true;try{await CLOUD.doc.set({json:JSON.stringify(DB),updatedAt:DB.updatedAt||Date.now()});}catch(e){if(e&&e.code==='invalid_argument')CLOUD.ok=false;}CLOUD.busy=false;}
-document.addEventListener('visibilitychange',()=>{if(document.hidden){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}syncUp();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){flush();syncUp();}});
+window.addEventListener('pagehide',flush);
 
 /* ================= 프로필 / 진도 ================= */
 const S={screen:'profiles',manage:false,delId:null,form:null,modal:null,adv:null,g:null,q:null,qa:null,qctx:null,detail:null,gate:null,after:null,more:false,turn:0};
@@ -823,8 +835,13 @@ V.profiles=()=>{const ps=DB.profiles;
   </div>
   ${ps.length?`<div class="row" style="justify-content:center"><button class="btn ghost sm" data-act="manage">${S.manage?'관리 끝내기':'프로필 관리'}</button></div>`:''}
   ${S.manage||!ps.length?`<div class="row" style="justify-content:center"><button class="btn ghost sm" data-act="restorePick">📂 기록 파일 불러오기</button></div><input type="file" id="restore-in" accept=".json,application/json" hidden>${restoreBox()}`:''}
+  ${storeWarn()}
   <p class="foot">학습 기록은 이 기기의 브라우저에 저장돼요.${CLOUD.ok?' claude.ai에 로그인한 계정에도 함께 저장하고 있어요.':''}</p>
   </div>`;};
+function storeWarn(){
+  if(!STORE.ok&&!CLOUD.ok)return `<div class="tmsg bad" style="text-align:center">⚠️ 지금 화면에서는 기록이 저장되지 않아요. 비공개(시크릿) 모드라면 일반 모드로 열어 주세요.</div>`;
+  if(IOS_TAB)return `<div class="tmsg bad" style="text-align:center">📌 아이패드에서는 사파리가 아니라 <b>홈 화면의 묵룡 아이콘</b>으로 열어 주세요. 사파리와 홈 화면 앱은 기록을 따로 저장해요.</div>`;
+  return '';}
 
 V.form=()=>{const f=S.form;
   return `<div class="wrap"><div class="topbar"><button class="back" data-act="toProfiles">← 뒤로</button></div>
@@ -865,6 +882,7 @@ V.home=()=>{const p=cur(),st=stageOf(p.xp),nx=STAGES[st+1],done=p.lastDone===tod
     <button class="tile-n" data-act="toBadges"><span class="ic">🏅</span><b>배지</b><small>${Object.keys(p.badges).length}/${BADGES.length}개 모았어요</small></button>
     <button class="tile-n" data-act="toGate"><span class="ic">📊</span><b>부모님 리포트</b><small>학습 기록 보기 (어른 확인)</small></button>
   </nav>
+  ${storeWarn()}
   ${S.modal==='course'?`<div class="ov" data-act="closeModal"><div class="sheet" data-stop="1"><div class="sheet-h"><h2>코스 고르기</h2><button class="x" data-act="closeModal" aria-label="닫기">×</button></div><p class="muted">어느 코스에서 배워도 같은 한자는 한 번만 배우면 돼요.</p><div class="copts">${courseOpts(p.course,'setCourse',p.grade)}</div></div></div>`:''}
   </div>`;};
 
@@ -880,7 +898,7 @@ function wordCardQuiz(o,focus){const st=wordStep(o.w);
 function wordCard(o,focus){return `<div class="wcard"><div class="wtop"><span class="whan">${[...o.w].map(c=>`<span class="wc ${c===focus?'focus':''}"><b>${c}</b><small>${hs(c)}</small></span>`).join('')}</span><button class="say" data-act="say" data-t="${esc(o.r)}" aria-label="${esc(o.r)} 듣기">🔊</button></div><div class="wread disp">${o.r} ${o.e}</div><div class="wmean">${o.m}</div></div>`;}
 function nWords(p){return p.grade<=2?3:p.grade<=4?4:5;}
 V.adv=()=>{const p=cur(),ad=S.adv;let body='';
-  if(ad.phase==='review'){body=`<h2 style="font-size:22px">🔁 복습 시간 <small class="muted">${ad.ri+1}/${ad.rev.length}</small></h2><p class="muted">예전에 배운 걸 다시 꺼내 보면 오래오래 기억나요.</p>${quizHTML()}`;}
+  if(ad.phase==='review'){body=`<h2 style="font-size:22px">🔁 복습 시간 <small class="muted">${ad.ri+1}/${ad.rev.length}</small></h2><p class="muted">${(ad.warm||[]).includes(ad.rev[ad.ri])?'지난번에 배운 걸 한 번 더 떠올려 봐요. 그다음 새 한자를 만나요!':'예전에 배운 걸 다시 꺼내 보면 오래오래 기억나요.'}</p>${quizHTML()}`;}
   else if(ad.phase==='learn'){const h=HM[ad.newC[ad.hi]],hsx=hs(h.c),n=nWords(p),shown=h.words.slice(0,S.more?99:n),rest=h.words.slice(n);
     const head=`<p class="muted">새 한자 ${ad.hi+1}/${ad.newC.length}${ad.title?' · '+ad.title:''}</p>`;
     const th=p.together?`<p class="together-hint">👨‍👩‍👧 어른이 먼저 읽어 주고, 아이가 따라 읽어요</p>`:'';
@@ -1060,6 +1078,8 @@ V.report=()=>{const p=cur(),t=today(),start=addDays(weekStart(t),-21);
     <div class="row"><button class="btn ghost sm" data-act="backup">💾 기록 파일로 저장</button><button class="btn ghost sm" data-act="restorePick">📂 기록 파일 불러오기</button></div>
     <input type="file" id="restore-in" accept=".json,application/json" hidden>
     ${restoreBox()}
+    <p class="muted" style="font-size:13px">저장 상태: ${!STORE.ok?'⚠️ 저장 안 됨 (비공개 모드?)':'이 기기에 저장 중'} · ${STANDALONE?'홈 화면 앱':'브라우저'}${STORE.persist===true?' · 자동 삭제 방지 켜짐':''}${STORE.at?' · 마지막 저장 '+new Date(STORE.at).toLocaleTimeString('ko-KR'):''}</p>
+    ${storeWarn()}
   </section>
   </div>`;};
 
@@ -1099,14 +1119,19 @@ A.toGate=()=>go('gate',{restore:null,gate:{a:12+Math.floor(Math.random()*8),b:3+
 A.gateGo=()=>{const g=S.gate,v=parseInt((document.getElementById('gate-in')||{}).value,10);if(v===g.a*g.b)go('report');else{g.err=true;g.input='';render();}};
 
 /* 모험 흐름 */
-A.startAdv=()=>{const p=cur(),rev=dueKeys(p).slice(0,8),nn=nextNew(p,3);
-  S.adv={phase:rev.length?'review':(nn.cs.length?'learn':'game'),rev,ri:0,newC:nn.cs,title:nn.title,hi:0,page:0,sq:[],si:0,learned:[],xp:0,revOk:0,gamePlayed:false,startStage:stageOf(p.xp),endStage:stageOf(p.xp),applied:false};
+// 복습할 날이 된 것이 4개보다 적으면, 가장 최근에 배운 한자·낱말로 채워 "지난번 복습"을 함 (다음 단계로 넘어가기 전에 항상 복습)
+function warmKeys(p,skip,n){if(n<=0)return[];const dt=k=>(k[0]==='h'?p.learned[k.slice(2)]:p.seen[k.slice(2)])||'';
+  return Object.keys(p.srs).filter(k=>!skip.includes(k)&&p.srs[k].b<6&&(k[0]==='h'||WM[k.slice(2)])).sort((a,b)=>dt(b).localeCompare(dt(a))||(a[0]==='h'?-1:1)-(b[0]==='h'?-1:1)).slice(0,n);}
+A.startAdv=()=>{const p=cur(),due=dueKeys(p).slice(0,8),warm=warmKeys(p,due,4-due.length),rev=due.concat(shuffle(warm)),nn=nextNew(p,3);
+  S.adv={phase:rev.length?'review':(nn.cs.length?'learn':'game'),rev,warm,ri:0,newC:nn.cs,title:nn.title,hi:0,page:0,sq:[],si:0,learned:[],xp:0,revOk:0,gamePlayed:false,startStage:stageOf(p.xp),endStage:stageOf(p.xp),applied:false};
   S.more=false;S.turn=0;S.wst={};
   if(S.adv.phase==='review')setQ(reviewQ(rev[0]),ctxRev());
   go('adv');
   if(S.adv.phase==='learn')setTimeout(()=>speak(hs(S.adv.newC[0])),1500);};
 function reviewQ(k){const it=keyItem(k);const ks=it.t==='h'?['h2m','m2h']:['w2m','m2w','sent'];if(CAN_SAY)ks.push('listen');return makeQ(it,pick(ks));}
-function ctxRev(){return{onAnswer(ok){const p=cur(),ad=S.adv,k=ad.rev[ad.ri];srsAnswer(p,k,ok);L(p).rev++;if(ok){ad.revOk++;p.revOk=(p.revOk||0)+1;p.xp+=2;ad.xp+=2;}save();},
+function ctxRev(){return{onAnswer(ok){const p=cur(),ad=S.adv,k=ad.rev[ad.ri];
+    // 미리 하는 복습은 맞혀도 상자를 올리지 않음(간격 유지), 틀리면 1번 상자로
+    if(!(ad.warm||[]).includes(k)||!ok)srsAnswer(p,k,ok);L(p).rev++;if(ok){ad.revOk++;p.revOk=(p.revOk||0)+1;p.xp+=2;ad.xp+=2;}save();},
   onNext(){const ad=S.adv;ad.ri++;S.turn++;if(ad.ri<ad.rev.length)setQ(reviewQ(ad.rev[ad.ri]),ctxRev());else{ad.phase=ad.newC.length?'learn':'game';if(ad.phase==='learn')setTimeout(()=>speak(hs(ad.newC[0])),1500);}render();window.scrollTo(0,0);}};}
 function commitLearn(){const p=cur(),ad=S.adv,h=HM[ad.newC[ad.hi]],shown=h.words.slice(0,S.more?99:nWords(p));
   if(!p.learned[h.c]){p.learned[h.c]=today();srsAdd(p,'h:'+h.c);p.xp+=10;ad.xp+=10;L(p).newH++;ad.learned.push(h.c);}

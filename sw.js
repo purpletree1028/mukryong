@@ -1,4 +1,4 @@
-const CACHE='mukryong-20261027-110612';
+const CACHE='mukryong-20261029-214158';
 const FILES=["./", "index.html", "character/mukryong.png", "audio/han.mp3", "audio/index.json", "audio/misc.mp3", "audio/sents.mp3", "audio/words.mp3", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "manifest.webmanifest"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('mukryong-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
